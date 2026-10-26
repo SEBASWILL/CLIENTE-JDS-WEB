@@ -1,0 +1,385 @@
+---
+import '../styles/global.css';
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gastos</title>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900">
+
+    <!-- ============ LOGIN / REGISTRO ============ -->
+    <main id="auth" class="hidden min-h-screen items-center justify-center p-4">
+      <form id="auth-form" class="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200">
+        <div>
+          <h1 class="text-2xl font-bold">💸 Gastos</h1>
+          <p id="auth-sub" class="text-sm text-slate-500">Inicia sesión para ver tus gastos</p>
+        </div>
+        <input id="a-email" type="email" required placeholder="correo@ejemplo.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-emerald-500" />
+        <input id="a-pass" type="password" required minlength="10" placeholder="Contraseña (mínimo 10 caracteres)" class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-emerald-500" />
+        <button id="a-submit" class="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700">Entrar</button>
+        <button type="button" id="a-toggle" class="w-full text-sm text-emerald-700 hover:underline">¿No tienes cuenta? Crear una</button>
+        <label class="block border-t pt-3 text-xs text-slate-500">
+          URL de la API
+          <input id="a-api" class="mt-1 w-full rounded border border-slate-200 px-2 py-1 font-mono text-xs" />
+        </label>
+      </form>
+    </main>
+
+    <!-- ============ APP ============ -->
+    <div id="app" class="hidden">
+      <header class="border-b bg-white">
+        <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+          <h1 class="text-lg font-bold">💸 Gastos</h1>
+          <div class="flex items-center gap-3 text-sm">
+            <button id="api-url" class="hidden rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-500 hover:bg-slate-200 sm:block" title="Cambiar URL de la API"></button>
+            <button id="logout" class="rounded-lg border px-3 py-1.5 hover:bg-slate-100">Salir</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="mx-auto max-w-5xl space-y-6 p-4">
+        <!-- Resumen -->
+        <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div class="rounded-2xl bg-emerald-600 p-4 text-white shadow">
+            <p class="text-xs uppercase opacity-80">Total gastado</p>
+            <p id="k-total" class="mt-1 text-2xl font-bold">–</p>
+          </div>
+          <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <p class="text-xs uppercase text-slate-500">Movimientos</p>
+            <p id="k-count" class="mt-1 text-2xl font-bold">–</p>
+            <p class="text-xs text-rose-600"><span id="k-declined">0</span> declinadas</p>
+          </div>
+          <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <p class="text-xs uppercase text-slate-500">💳 Tarjeta</p>
+            <p id="k-card" class="mt-1 text-2xl font-bold">–</p>
+          </div>
+          <div class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <p class="text-xs uppercase text-slate-500">💵 Efectivo</p>
+            <p id="k-cash" class="mt-1 text-2xl font-bold">–</p>
+          </div>
+        </section>
+
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Por categoría -->
+          <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 lg:col-span-1">
+            <h2 class="mb-3 font-semibold">Por categoría</h2>
+            <div id="cats" class="space-y-3"></div>
+          </section>
+
+          <!-- Simulador del Atajo -->
+          <section class="rounded-2xl bg-slate-900 p-4 text-slate-100 shadow lg:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 class="font-semibold">📱 Simulador del Atajo de iPhone</h2>
+                <p class="text-xs text-slate-400">Hace lo mismo que hará el Atajo al pagar con Apple Pay.</p>
+              </div>
+              <button id="sim" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200">Simular pago con Apple Pay</button>
+            </div>
+            <pre id="sim-log" class="mt-3 max-h-48 overflow-auto rounded-lg bg-black/40 p-3 text-xs leading-relaxed text-emerald-300">Pulsa el botón para enviar un pago de prueba a /v1/ingest…</pre>
+          </section>
+        </div>
+
+        <!-- Nuevo gasto -->
+        <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+          <h2 class="mb-3 font-semibold">Registrar gasto manual</h2>
+          <form id="tx-form" class="grid gap-3 sm:grid-cols-6">
+            <select id="f-type" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-1">
+              <option value="cash">💵 Efectivo</option>
+              <option value="card">💳 Tarjeta</option>
+            </select>
+            <input id="f-merchant" required placeholder="Comercio" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-2" />
+            <input id="f-amount" required placeholder="Monto (ej. 25.000)" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-1" />
+            <select id="f-category" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-2"></select>
+            <input id="f-card" placeholder="Tarjeta (ej. Visa 4242)" class="hidden rounded-lg border border-slate-300 px-3 py-2 sm:col-span-2" />
+            <input id="f-desc" placeholder="Descripción (opcional)" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-3" />
+            <button class="rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700 sm:col-span-1">Agregar</button>
+          </form>
+        </section>
+
+        <!-- Lista -->
+        <section class="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b p-4">
+            <h2 class="font-semibold">Transacciones</h2>
+            <div class="flex gap-2 text-sm">
+              <select id="flt-type" class="rounded-lg border border-slate-300 px-2 py-1">
+                <option value="">Todos los tipos</option>
+                <option value="card">💳 Tarjeta</option>
+                <option value="cash">💵 Efectivo</option>
+              </select>
+              <select id="flt-status" class="rounded-lg border border-slate-300 px-2 py-1">
+                <option value="">Todos los estados</option>
+                <option value="approved">Aprobada</option>
+                <option value="pending">Pendiente</option>
+                <option value="declined">Declinada</option>
+                <option value="refunded">Reembolsada</option>
+              </select>
+            </div>
+          </div>
+          <ul id="list" class="divide-y"></ul>
+        </section>
+      </main>
+    </div>
+
+    <!-- Llave de recuperación -->
+    <div id="recovery" class="fixed inset-0 z-20 hidden items-center justify-center bg-black/60 p-4">
+      <div class="w-full max-w-md space-y-3 rounded-2xl bg-white p-6 shadow-xl">
+        <h2 class="text-lg font-bold">🔑 Guarda tu llave de recuperación</h2>
+        <p class="text-sm text-slate-600">Es la única forma de recuperar tus datos si olvidas la contraseña. No se vuelve a mostrar.</p>
+        <code id="rk" class="block break-all rounded-lg bg-slate-100 p-3 text-xs"></code>
+        <div class="flex gap-2">
+          <button id="rk-copy" class="flex-1 rounded-lg border py-2 text-sm hover:bg-slate-100">Copiar</button>
+          <button id="rk-ok" class="flex-1 rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Ya la guardé</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-4 left-1/2 z-30 hidden max-w-[90vw] -translate-x-1/2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white shadow-lg"></div>
+
+    <script>
+      const $ = (s) => document.querySelector(s);
+      const store = {
+        get: (k, d = null) => localStorage.getItem(k) ?? d,
+        set: (k, v) => localStorage.setItem(k, v),
+        del: (k) => localStorage.removeItem(k),
+      };
+      const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const CATS = ['comida', 'mercado', 'transporte', 'ocio', 'servicios', 'salud', 'otros'];
+      const STATUS = { approved: 'Aprobada', pending: 'Pendiente', declined: 'Declinada', refunded: 'Reembolsada' };
+      const STATUS_CLS = {
+        approved: 'bg-emerald-100 text-emerald-800', pending: 'bg-amber-100 text-amber-800',
+        declined: 'bg-rose-100 text-rose-800', refunded: 'bg-sky-100 text-sky-800',
+      };
+      let API = store.get('apiUrl', 'http://localhost:3000');
+      let mode = 'login';
+
+      function money(n, cur = 'COP') {
+        try { return new Intl.NumberFormat('es-CO', { style: 'currency', currency: cur, maximumFractionDigits: 0 }).format(n); }
+        catch { return `${n} ${cur}`; }
+      }
+      let toastT;
+      function toast(msg) {
+        const t = $('#toast');
+        t.textContent = msg; t.classList.remove('hidden');
+        clearTimeout(toastT); toastT = setTimeout(() => t.classList.add('hidden'), 4000);
+      }
+
+      // ---------- Cliente de la API ----------
+      async function call(method, path, body, o = {}) {
+        const token = o.token ?? (o.auth === false ? null : store.get('at'));
+        let res;
+        try {
+          res = await fetch(API + path, {
+            method,
+            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
+            body: body ? JSON.stringify(body) : undefined,
+          });
+        } catch {
+          throw new Error(`No se pudo conectar con ${API}. ¿Está corriendo la API? ¿CORS_ORIGINS incluye ${location.origin}?`);
+        }
+        if (res.status === 401 && o.auth !== false && !o.token && o.retry !== false && store.get('rt') && (await refresh())) {
+          return call(method, path, body, { ...o, retry: false });
+        }
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!res.ok) {
+          const det = data?.details?.map((d) => `${d.field}: ${d.message}`).join(' · ');
+          throw Object.assign(new Error(det || data?.error || `Error ${res.status}`), { status: res.status });
+        }
+        return data;
+      }
+
+      function setSession(r) {
+        store.set('at', r.accessToken);
+        store.set('rt', r.refreshToken);
+      }
+      async function refresh() {
+        try {
+          setSession(await call('POST', '/v1/auth/refresh', { refreshToken: store.get('rt') }, { auth: false }));
+          return true;
+        } catch {
+          clearSession(); showAuth();
+          return false;
+        }
+      }
+      function clearSession() { ['at', 'rt', 'it'].forEach(store.del); }
+
+      // ---------- Pantallas ----------
+      function showAuth() {
+        $('#app').classList.add('hidden');
+        $('#auth').classList.remove('hidden'); $('#auth').classList.add('flex');
+        $('#a-api').value = API;
+      }
+      function showApp() {
+        $('#auth').classList.add('hidden'); $('#auth').classList.remove('flex');
+        $('#app').classList.remove('hidden');
+        $('#api-url').textContent = API;
+        load();
+      }
+
+      function setMode(m) {
+        mode = m;
+        const reg = m === 'register';
+        $('#auth-sub').textContent = reg ? 'Crea tu cuenta' : 'Inicia sesión para ver tus gastos';
+        $('#a-submit').textContent = reg ? 'Crear cuenta' : 'Entrar';
+        $('#a-toggle').textContent = reg ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Crear una';
+      }
+      $('#a-toggle').onclick = () => setMode(mode === 'login' ? 'register' : 'login');
+
+      $('#auth-form').onsubmit = async (e) => {
+        e.preventDefault();
+        API = $('#a-api').value.trim().replace(/\/$/, '') || API;
+        store.set('apiUrl', API);
+        try {
+          const r = await call('POST', '/v1/auth/' + mode, { email: $('#a-email').value, password: $('#a-pass').value }, { auth: false });
+          setSession(r);
+          if (r.recoveryKey) {
+            $('#rk').textContent = r.recoveryKey;
+            $('#recovery').classList.remove('hidden'); $('#recovery').classList.add('flex');
+          } else showApp();
+        } catch (err) { toast(err.message); }
+      };
+      $('#rk-copy').onclick = () => navigator.clipboard.writeText($('#rk').textContent).then(() => toast('Copiada'));
+      $('#rk-ok').onclick = () => { $('#recovery').classList.add('hidden'); $('#recovery').classList.remove('flex'); showApp(); };
+
+      $('#logout').onclick = async () => {
+        try { await call('POST', '/v1/auth/logout', {}); } catch {}
+        clearSession(); showAuth();
+      };
+      $('#api-url').onclick = () => {
+        const v = prompt('URL de la API', API);
+        if (v) { API = v.trim().replace(/\/$/, ''); store.set('apiUrl', API); $('#api-url').textContent = API; load(); }
+      };
+
+      // ---------- Datos ----------
+      async function load() {
+        const qs = new URLSearchParams({ limit: '200' });
+        if ($('#flt-type').value) qs.set('type', $('#flt-type').value);
+        if ($('#flt-status').value) qs.set('status', $('#flt-status').value);
+        try {
+          const [list, sum] = await Promise.all([
+            call('GET', '/v1/transactions?' + qs), call('GET', '/v1/transactions/summary'),
+          ]);
+          renderSummary(sum); renderList(list.items);
+        } catch (err) { toast(err.message); }
+      }
+
+      function renderSummary(s) {
+        $('#k-total').textContent = money(s.total);
+        $('#k-count').textContent = s.count;
+        $('#k-declined').textContent = s.declined_count;
+        $('#k-card').textContent = money(s.by_type.card || 0);
+        $('#k-cash').textContent = money(s.by_type.cash || 0);
+        const cats = Object.entries(s.by_category).sort((a, b) => b[1] - a[1]);
+        const max = cats[0]?.[1] || 1;
+        $('#cats').innerHTML = cats.length
+          ? cats.map(([c, v]) => `
+            <div>
+              <div class="mb-1 flex justify-between text-sm"><span class="capitalize">${esc(c.replace('_', ' '))}</span><span class="tabular-nums text-slate-500">${money(v)}</span></div>
+              <div class="h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-emerald-500" style="width:${Math.max(4, (v / max) * 100)}%"></div></div>
+            </div>`).join('')
+          : '<p class="text-sm text-slate-400">Aún no hay gastos.</p>';
+      }
+
+      function renderList(items) {
+        if (!items.length) { $('#list').innerHTML = '<li class="p-6 text-center text-sm text-slate-400">No hay transacciones. Agrega una o simula un pago.</li>'; return; }
+        $('#list').innerHTML = items.map((t) => {
+          const cats = CATS.includes(t.category) || !t.category ? CATS : [...CATS, t.category];
+          const src = t.source === 'ios-shortcut' ? ' Atajo iOS' : t.source === 'manual' ? '✍️ Manual' : esc(t.source);
+          const when = new Date(t.occurred_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+          return `
+          <li class="flex flex-wrap items-center gap-3 px-4 py-3" data-id="${t.id}">
+            <div class="text-xl">${t.type === 'cash' ? '💵' : '💳'}</div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-medium">${esc(t.merchant)}</p>
+              <p class="text-xs text-slate-500">${when}${t.card ? ' · ' + esc(t.card) : ''} · ${src}</p>
+              ${t.description ? `<p class="truncate text-xs text-slate-400">${esc(t.description)}</p>` : ''}
+            </div>
+            <p class="font-semibold tabular-nums ${t.status === 'declined' ? 'text-slate-400 line-through' : ''}">${money(t.amount, t.currency)}</p>
+            <select data-act="category" class="rounded-lg border border-slate-200 px-2 py-1 text-xs capitalize">
+              <option value="">sin categoría</option>
+              ${cats.map((c) => `<option value="${esc(c)}" ${t.category === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+            </select>
+            <select data-act="status" class="rounded-full border-0 px-2 py-1 text-xs font-medium ${STATUS_CLS[t.status]}">
+              ${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+            </select>
+            <button data-act="delete" class="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600" title="Borrar">✕</button>
+          </li>`;
+        }).join('');
+      }
+
+      $('#list').onchange = async (e) => {
+        const act = e.target.dataset.act; if (!act) return;
+        const id = e.target.closest('li').dataset.id;
+        try {
+          await call('PATCH', '/v1/transactions/' + id, act === 'status' ? { status: e.target.value } : { category: e.target.value || null });
+          load();
+        } catch (err) { toast(err.message); }
+      };
+      $('#list').onclick = async (e) => {
+        if (e.target.dataset.act !== 'delete') return;
+        if (!confirm('¿Borrar esta transacción?')) return;
+        try { await call('DELETE', '/v1/transactions/' + e.target.closest('li').dataset.id); load(); }
+        catch (err) { toast(err.message); }
+      };
+      $('#flt-type').onchange = $('#flt-status').onchange = load;
+
+      // ---------- Formulario manual ----------
+      $('#f-category').innerHTML = '<option value="">Categoría</option>' + CATS.map((c) => `<option value="${c}" class="capitalize">${c}</option>`).join('');
+      $('#f-type').onchange = () => $('#f-card').classList.toggle('hidden', $('#f-type').value === 'cash');
+      $('#tx-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const type = $('#f-type').value;
+        const body = { type, merchant: $('#f-merchant').value, amount: $('#f-amount').value };
+        if ($('#f-category').value) body.category = $('#f-category').value;
+        if ($('#f-desc').value) body.description = $('#f-desc').value;
+        if (type === 'card' && $('#f-card').value) body.card = $('#f-card').value;
+        try {
+          await call('POST', '/v1/transactions', body);
+          e.target.reset(); $('#f-card').classList.add('hidden');
+          toast('Gasto agregado'); load();
+        } catch (err) { toast(err.message); }
+      };
+
+      // ---------- Simulador del Atajo de iOS ----------
+      const SIM = [
+        { merchant: 'Rappi', amount: '$25.000,00', card: 'Visa 4242' },
+        { merchant: 'Éxito', amount: '$87.450,00', card: 'Mastercard 1881' },
+        { merchant: 'Uber', amount: '$18.300', card: 'Visa 4242' },
+        { merchant: 'Netflix', amount: '$39.900', card: 'Visa 4242', status: 'declined' },
+        { merchant: 'Starbucks', amount: 'COP 14,500.00', card: 'Amex 0005' },
+        { merchant: 'Droguería Cruz Verde', amount: '$52.000,00', card: 'Mastercard 1881' },
+      ];
+      async function ensureIngestToken(force = false) {
+        if (!force && store.get('it')) return store.get('it');
+        const r = await call('POST', '/v1/ingest-tokens', { label: 'Simulador web' });
+        store.set('it', r.token);
+        return r.token;
+      }
+      $('#sim').onclick = async () => {
+        const p = { ...SIM[Math.floor(Math.random() * SIM.length)], date: new Date().toISOString() };
+        const log = $('#sim-log');
+        try {
+          let tok = await ensureIngestToken();
+          const show = (extra) => (log.textContent =
+            `POST ${API}/v1/ingest\nAuthorization: Bearer ${tok.slice(0, 9)}…\n\n${JSON.stringify(p, null, 2)}\n\n${extra}`);
+          show('Enviando…');
+          let res;
+          try { res = await call('POST', '/v1/ingest', p, { token: tok }); }
+          catch (err) {
+            if (err.status !== 401) throw err;
+            tok = await ensureIngestToken(true); // token revocado: crear otro
+            res = await call('POST', '/v1/ingest', p, { token: tok });
+          }
+          show(`→ 201 ${JSON.stringify(res)}`);
+          load();
+        } catch (err) { log.textContent = 'Error: ' + err.message; toast(err.message); }
+      };
+
+      // ---------- Arranque ----------
+      store.get('at') ? showApp() : showAuth();
+    </script>
+  </body>
+</html>
