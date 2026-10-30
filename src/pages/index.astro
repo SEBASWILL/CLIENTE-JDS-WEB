@@ -41,6 +41,17 @@ import '../styles/global.css';
       </header>
 
       <main class="mx-auto max-w-5xl space-y-6 p-4">
+        <nav class="flex gap-1 rounded-xl bg-slate-200 p-1 text-sm font-medium">
+          <button data-tab="resumen" class="flex-1 rounded-lg px-3 py-2">📊 Resumen</button>
+          <button data-tab="reportes" class="flex-1 rounded-lg px-3 py-2">📅 Reportes</button>
+          <button data-tab="metas" class="flex-1 rounded-lg px-3 py-2">🎯 Metas</button>
+        </nav>
+        <div id="demo-note" class="hidden rounded-xl bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200">
+          Mostrando <b>datos de ejemplo</b>: la API aún no tiene estos endpoints.
+          <button id="demo-retry" class="font-semibold underline">Reintentar con la API real</button>
+        </div>
+
+        <div id="tab-resumen" class="space-y-6">
         <!-- Resumen -->
         <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <div class="rounded-2xl bg-emerald-600 p-4 text-white shadow">
@@ -120,6 +131,45 @@ import '../styles/global.css';
           </div>
           <ul id="list" class="divide-y"></ul>
         </section>
+        </div>
+
+        <!-- ============ REPORTES ============ -->
+        <div id="tab-reportes" class="hidden space-y-6">
+          <section id="r-kpis" class="grid grid-cols-2 gap-3 lg:grid-cols-4"></section>
+          <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <h2 class="mb-6 font-semibold">Gasto diario · últimos 30 días</h2>
+            <div id="r-daily-chart"></div>
+          </section>
+          <div class="grid gap-6 lg:grid-cols-2">
+            <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+              <h2 class="mb-3 font-semibold">Reporte semanal</h2>
+              <div id="r-weekly" class="space-y-4"></div>
+            </section>
+            <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+              <h2 class="mb-3 font-semibold">Por categoría</h2>
+              <div id="r-cats" class="space-y-3"></div>
+              <h2 class="mb-3 mt-6 font-semibold">Top comercios</h2>
+              <ol id="r-merch" class="space-y-2 text-sm"></ol>
+            </section>
+          </div>
+          <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <h2 class="mb-3 font-semibold">Detalle por día</h2>
+            <div class="max-h-80 overflow-auto"><table id="r-table" class="w-full text-sm"></table></div>
+          </section>
+        </div>
+
+        <!-- ============ METAS ============ -->
+        <div id="tab-metas" class="hidden space-y-6">
+          <section class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+            <h2 id="g-title" class="font-semibold">Metas del mes</h2>
+            <form id="g-form" class="mt-3 grid gap-3 sm:grid-cols-4">
+              <select id="g-cat" class="rounded-lg border border-slate-300 px-3 py-2"></select>
+              <input id="g-limit" required placeholder="Límite mensual (ej. 2.000.000)" class="rounded-lg border border-slate-300 px-3 py-2 sm:col-span-2" />
+              <button class="rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700">Crear meta</button>
+            </form>
+          </section>
+          <div id="g-list" class="grid gap-4 md:grid-cols-2"></div>
+        </div>
       </main>
     </div>
 
@@ -216,6 +266,7 @@ import '../styles/global.css';
         $('#auth').classList.add('hidden'); $('#auth').classList.remove('flex');
         $('#app').classList.remove('hidden');
         $('#api-url').textContent = API;
+        showTab('resumen');
         load();
       }
 
@@ -376,6 +427,170 @@ import '../styles/global.css';
           show(`→ 201 ${JSON.stringify(res)}`);
           load();
         } catch (err) { log.textContent = 'Error: ' + err.message; toast(err.message); }
+      };
+
+      // ---------- Pestañas, Reportes y Metas ----------
+      const TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const iso = (d) => d.toLocaleDateString('en-CA'); // YYYY-MM-DD en hora local
+      const fmtDay = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' });
+      const fmtShort = (d) => new Date(d + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+      const card = 'rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200';
+      let DEMO = false; // true = la API no tiene los endpoints nuevos: se muestran datos de ejemplo
+
+      document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
+      function showTab(t) {
+        ['resumen', 'reportes', 'metas'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
+        document.querySelectorAll('[data-tab]').forEach((b) => {
+          const on = b.dataset.tab === t;
+          b.classList.toggle('bg-white', on); b.classList.toggle('shadow', on); b.classList.toggle('text-slate-500', !on);
+        });
+        if (t === 'reportes') loadReports();
+        if (t === 'metas') loadGoals();
+      }
+      // Pide a la API real; si el endpoint no existe (404) usa datos de ejemplo.
+      async function getNew(path, demoFn) {
+        if (!DEMO) {
+          try { const r = await call('GET', path); $('#demo-note').classList.add('hidden'); return r; }
+          catch (e) { if (e.status !== 404) throw e; DEMO = true; }
+        }
+        $('#demo-note').classList.remove('hidden');
+        return demoFn();
+      }
+      $('#demo-retry').onclick = () => { DEMO = false; $('#tab-metas').classList.contains('hidden') ? loadReports() : loadGoals(); };
+
+      // ----- Datos de ejemplo (misma forma que devolverá la API) -----
+      const rnd = (i) => { const x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x); };
+      function sampleDays(n = 56) {
+        const out = [], today = new Date(); today.setHours(12, 0, 0, 0);
+        for (let i = n - 1; i >= 0; i--) {
+          const d = new Date(today); d.setDate(d.getDate() - i);
+          const r = rnd(d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate());
+          const by = {};
+          if (r > 0.15) ['comida', 'mercado', 'transporte', 'ocio', 'servicios'].forEach((c, k) => (by[c] = Math.round((15000 + r * 110000) * [0.35, 0.25, 0.2, 0.12, 0.08][k] / 1000) * 1000));
+          const total = Object.values(by).reduce((a, b) => a + b, 0), card_ = Math.round(total * 0.8 / 1000) * 1000;
+          out.push({ date: iso(d), total, count: total ? 1 + Math.floor(r * 4) : 0, by_category: by, by_type: { card: card_, cash: total - card_ } });
+        }
+        return out;
+      }
+      function sampleDaily() {
+        const days = sampleDays().slice(-30), total = days.reduce((a, x) => a + x.total, 0);
+        const top_merchants = [['Rappi', 0.22], ['Éxito', 0.18], ['Uber', 0.12], ['Starbucks', 0.08], ['Netflix', 0.05]]
+          .map(([merchant, p]) => ({ merchant, total: Math.round(total * p / 1000) * 1000, count: Math.round(days.length * p * 0.8) }));
+        return { tz: TZ, days, summary: { total, avg_per_day: Math.round(total / days.length), max_day: days.reduce((a, x) => (x.total > a.total ? x : a)), zero_days: days.filter((x) => !x.total).length, top_merchants } };
+      }
+      function sampleWeekly() {
+        const weeks = {};
+        sampleDays().forEach((x) => {
+          const d = new Date(x.date + 'T12:00:00'); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // lunes
+          const w = (weeks[iso(d)] ||= { start: iso(d), total: 0, count: 0, days: 0 });
+          w.total += x.total; w.count += x.count; w.days++;
+        });
+        const list = Object.values(weeks).sort((a, b) => (a.start < b.start ? -1 : 1)).slice(-8);
+        list.forEach((w, i) => {
+          const e = new Date(w.start + 'T12:00:00'); e.setDate(e.getDate() + 6);
+          w.end = iso(e); w.avg_per_day = Math.round(w.total / w.days);
+          w.change_pct = i && list[i - 1].total ? Math.round(((w.total - list[i - 1].total) / list[i - 1].total) * 100) : null;
+        });
+        return { tz: TZ, weeks: list };
+      }
+      let demoGoals = [{ id: 'd1', category: null, limit: 2500000 }, { id: 'd2', category: 'comida', limit: 600000 }];
+      const parseLimit = (v) => Number(String(v).replace(/[^\d]/g, ''));
+      function demoProgress() {
+        const m = iso(new Date()).slice(0, 7), md = sampleDays().filter((x) => x.date.startsWith(m));
+        const now = new Date(), dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), el = now.getDate(), left = dim - el + 1;
+        const goals = demoGoals.map((g) => {
+          const spent = md.reduce((a, x) => a + (g.category ? x.by_category[g.category] || 0 : x.total), 0), remaining = g.limit - spent, percent = Math.round((spent / g.limit) * 100);
+          return { id: g.id, category: g.category, limit: g.limit, spent, remaining, percent, status: percent >= 100 ? 'exceeded' : percent >= 80 ? 'warning' : 'ok', daily_allowance: remaining > 0 ? Math.round(remaining / left) : 0, projected: Math.round((spent / el) * dim) };
+        });
+        return { month: m, days_in_month: dim, days_elapsed: el, days_left: left, goals };
+      }
+
+      // ----- Reportes -----
+      async function loadReports() {
+        const q = '?tz=' + encodeURIComponent(TZ);
+        try {
+          const [d, w] = await Promise.all([getNew('/v1/reports/daily' + q, sampleDaily), getNew('/v1/reports/weekly' + q + '&weeks=8', sampleWeekly)]);
+          renderReports(d, w);
+        } catch (e) { toast(e.message); }
+      }
+      function renderReports(d, w) {
+        const s = d.summary, max = Math.max(...d.days.map((x) => x.total), 1);
+        const kpi = (l, v, sub = '') => `<div class="${card}"><p class="text-xs uppercase text-slate-500">${l}</p><p class="mt-1 text-xl font-bold">${v}</p><p class="text-xs text-slate-400">${sub}</p></div>`;
+        $('#r-kpis').innerHTML = kpi('Total del período', money(s.total), d.days.length + ' días') + kpi('Promedio diario', money(s.avg_per_day))
+          + kpi('Día de mayor gasto', money(s.max_day.total), fmtDay(s.max_day.date)) + kpi('Días sin gasto', s.zero_days);
+
+        $('#r-daily-chart').innerHTML = `
+          <div class="relative flex h-44 items-end gap-0.5 border-b border-slate-200">
+            <div class="absolute inset-x-0 border-t border-dashed border-amber-500" style="bottom:${(s.avg_per_day / max) * 100}%"><span class="absolute -top-4 right-0 text-[10px] text-amber-600">promedio ${money(s.avg_per_day)}</span></div>
+            ${d.days.map((x) => `<div class="flex-1 rounded-t ${x.total === s.max_day.total ? 'bg-rose-500' : 'bg-emerald-500'}" style="height:${x.total ? Math.max(2, (x.total / max) * 100) : 0}%" title="${fmtDay(x.date)}: ${money(x.total)}"></div>`).join('')}
+          </div>
+          <div class="mt-1 flex gap-0.5 text-[9px] text-slate-400">${d.days.map((x) => `<span class="flex-1 text-center">${+x.date.slice(8)}</span>`).join('')}</div>`;
+
+        const wmax = Math.max(...w.weeks.map((x) => x.total), 1);
+        $('#r-weekly').innerHTML = w.weeks.slice().reverse().map((x) => {
+          const c = x.change_pct, arrow = c == null ? '' : `<span class="${c > 0 ? 'text-rose-600' : 'text-emerald-600'}">${c > 0 ? '▲' : '▼'} ${Math.abs(c)}%</span>`;
+          return `<div><div class="mb-1 flex justify-between text-sm"><span>${fmtShort(x.start)} – ${fmtShort(x.end)}</span><span class="tabular-nums">${money(x.total)} ${arrow}</span></div>
+            <div class="h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-sky-500" style="width:${Math.max(2, (x.total / wmax) * 100)}%"></div></div>
+            <p class="mt-0.5 text-xs text-slate-400">${x.count} movimientos · ${money(x.avg_per_day)} por día</p></div>`;
+        }).join('');
+
+        const cats = {};
+        d.days.forEach((x) => Object.entries(x.by_category).forEach(([c, v]) => (cats[c] = (cats[c] || 0) + v)));
+        const ce = Object.entries(cats).sort((a, b) => b[1] - a[1]), cmax = ce[0]?.[1] || 1;
+        $('#r-cats').innerHTML = ce.map(([c, v]) => `<div><div class="mb-1 flex justify-between text-sm"><span class="capitalize">${esc(c.replace('_', ' '))}</span><span class="tabular-nums text-slate-500">${money(v)}</span></div><div class="h-2 rounded-full bg-slate-100"><div class="h-2 rounded-full bg-emerald-500" style="width:${(v / cmax) * 100}%"></div></div></div>`).join('') || '<p class="text-sm text-slate-400">Sin datos.</p>';
+        $('#r-merch').innerHTML = s.top_merchants.map((m, i) => `<li class="flex justify-between"><span><span class="mr-2 text-slate-400">${i + 1}.</span>${esc(m.merchant)} <span class="text-xs text-slate-400">(${m.count})</span></span><span class="tabular-nums">${money(m.total)}</span></li>`).join('') || '<li class="text-slate-400">Sin datos.</li>';
+
+        $('#r-table').innerHTML = '<thead class="sticky top-0 bg-white text-left text-xs uppercase text-slate-500"><tr><th class="py-2">Día</th><th>Mov.</th><th>Categoría principal</th><th class="text-right">Total</th></tr></thead><tbody class="divide-y">'
+          + d.days.slice().reverse().map((x) => {
+            const top = Object.entries(x.by_category).sort((a, b) => b[1] - a[1])[0];
+            return `<tr class="${x.total ? '' : 'text-slate-300'}"><td class="py-2">${fmtDay(x.date)}</td><td>${x.count}</td><td class="capitalize">${top ? esc(top[0].replace('_', ' ')) : '—'}</td><td class="text-right font-medium tabular-nums">${money(x.total)}</td></tr>`;
+          }).join('') + '</tbody>';
+      }
+
+      // ----- Metas -----
+      $('#g-cat').innerHTML = '<option value="">Total del mes</option>' + CATS.map((c) => `<option value="${c}">${c}</option>`).join('');
+      async function loadGoals() {
+        try { renderGoals(await getNew('/v1/goals/progress?tz=' + encodeURIComponent(TZ), demoProgress)); } catch (e) { toast(e.message); }
+      }
+      function renderGoals(p) {
+        const mes = new Date(p.month + '-15').toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+        $('#g-title').textContent = `Metas de ${mes} · faltan ${p.days_left} días`;
+        const COL = { ok: 'bg-emerald-500', warning: 'bg-amber-500', exceeded: 'bg-rose-500' };
+        $('#g-list').innerHTML = p.goals.map((g) => `
+          <div class="${card}" data-id="${g.id}">
+            <div class="flex items-center justify-between"><h3 class="font-semibold capitalize">${g.category ? esc(g.category) : 'Total del mes'}</h3>
+              <div class="flex gap-3 text-xs"><button data-g="edit" class="text-slate-500 hover:underline">Editar</button><button data-g="del" class="text-rose-600 hover:underline">Borrar</button></div></div>
+            <p class="mt-2 text-2xl font-bold tabular-nums ${g.remaining < 0 ? 'text-rose-600' : ''}">${money(Math.abs(g.remaining))}</p>
+            <p class="text-xs text-slate-500">${g.remaining >= 0 ? 'te quedan' : 'te pasaste'} · meta ${money(g.limit)}</p>
+            <div class="mt-3 h-3 overflow-hidden rounded-full bg-slate-100"><div class="h-3 ${COL[g.status]}" style="width:${Math.min(100, g.percent)}%"></div></div>
+            <p class="mt-1 text-xs text-slate-500">${g.percent}% usado · llevas ${money(g.spent)}</p>
+            <ul class="mt-3 space-y-1 text-sm text-slate-600">
+              <li>📅 ${g.remaining > 0 ? `Puedes gastar <b>${money(g.daily_allowance)}</b> por día` : 'Ya no queda presupuesto este mes'}</li>
+              <li class="${g.projected > g.limit ? 'text-rose-600' : ''}">📈 A este ritmo terminarías en <b>${money(g.projected)}</b></li>
+            </ul></div>`).join('') || '<p class="text-sm text-slate-400">Aún no tienes metas. Crea la primera arriba.</p>';
+      }
+      $('#g-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const body = { category: $('#g-cat').value || null, limit: $('#g-limit').value };
+        try {
+          if (DEMO) demoGoals.push({ id: 'd' + Date.now(), category: body.category, limit: parseLimit(body.limit) });
+          else await call('POST', '/v1/goals', body);
+          e.target.reset(); loadGoals();
+        } catch (err) { toast(err.message); }
+      };
+      $('#g-list').onclick = async (e) => {
+        const a = e.target.dataset.g; if (!a) return;
+        const id = e.target.closest('[data-id]').dataset.id;
+        try {
+          if (a === 'del') {
+            if (!confirm('¿Borrar esta meta?')) return;
+            if (DEMO) demoGoals = demoGoals.filter((g) => g.id !== id); else await call('DELETE', '/v1/goals/' + id);
+          } else {
+            const v = prompt('Nuevo límite mensual'); if (!v) return;
+            if (DEMO) demoGoals.find((g) => g.id === id).limit = parseLimit(v); else await call('PATCH', '/v1/goals/' + id, { limit: v });
+          }
+          loadGoals();
+        } catch (err) { toast(err.message); }
       };
 
       // ---------- Arranque ----------
