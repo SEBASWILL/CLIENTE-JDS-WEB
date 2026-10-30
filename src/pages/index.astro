@@ -18,13 +18,42 @@ import '../styles/global.css';
           <p id="auth-sub" class="text-sm text-slate-500">Inicia sesión para ver tus gastos</p>
         </div>
         <input id="a-email" type="email" required placeholder="correo@ejemplo.com" class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-emerald-500" />
+        <input id="a-rk" placeholder="Llave de recuperación" autocomplete="off" class="hidden w-full rounded-lg border border-slate-300 px-3 py-2 font-mono text-sm outline-none focus:border-emerald-500" />
         <input id="a-pass" type="password" required minlength="10" placeholder="Contraseña (mínimo 10 caracteres)" class="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-emerald-500" />
         <button id="a-submit" class="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700">Entrar</button>
         <button type="button" id="a-toggle" class="w-full text-sm text-emerald-700 hover:underline">¿No tienes cuenta? Crear una</button>
+        <button type="button" id="a-forgot" class="w-full text-xs text-slate-500 hover:underline">¿Olvidaste la contraseña o perdiste el celular?</button>
         <label class="block border-t pt-3 text-xs text-slate-500">
           URL de la API
           <input id="a-api" class="mt-1 w-full rounded border border-slate-200 px-2 py-1 font-mono text-xs" />
         </label>
+      </form>
+
+      <!-- Segundo paso: código del Authenticator (y QR si aún no lo configuró) -->
+      <form id="mfa-form" class="hidden w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200">
+        <div>
+          <h1 class="text-2xl font-bold">🔐 Verificación</h1>
+          <p id="mfa-sub" class="text-sm text-slate-500">Escribe el código de 6 dígitos de tu app Authenticator.</p>
+        </div>
+        <div id="mfa-setup" class="hidden space-y-3">
+          <ol class="list-decimal space-y-1 pl-5 text-sm text-slate-600">
+            <li>Abre Microsoft Authenticator (o Google Authenticator).</li>
+            <li>Toca <b>+</b> → <b>Otra cuenta</b> y escanea este código.</li>
+            <li>Escribe abajo el código de 6 dígitos que aparece.</li>
+          </ol>
+          <img id="mfa-qr" alt="Código QR para el Authenticator" class="mx-auto h-48 w-48 rounded-lg ring-1 ring-slate-200" />
+          <details class="text-xs text-slate-500">
+            <summary class="cursor-pointer">¿No puedes escanear? Escribe la clave a mano</summary>
+            <div class="mt-2 flex items-center gap-2">
+              <code id="mfa-secret" class="flex-1 break-all rounded bg-slate-100 p-2 font-mono"></code>
+              <button type="button" id="mfa-secret-copy" class="rounded border px-2 py-1 hover:bg-slate-100">Copiar</button>
+            </div>
+          </details>
+        </div>
+        <input id="mfa-code" required inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123 456"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-center font-mono text-2xl tracking-widest outline-none focus:border-emerald-500" />
+        <button class="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700">Verificar</button>
+        <button type="button" id="mfa-cancel" class="w-full text-sm text-slate-500 hover:underline">Cancelar y volver</button>
       </form>
     </main>
 
@@ -233,7 +262,12 @@ import '../styles/global.css';
           return call(method, path, body, { ...o, retry: false });
         }
         const text = await res.text();
-        const data = text ? JSON.parse(text) : null;
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch { data = { error: text }; } // p. ej. el 429 del rate limit llega en texto plano
+        if (res.status === 429) {
+          const wait = Math.ceil(Number(res.headers.get('RateLimit-Reset')) / 60);
+          throw Object.assign(new Error(`Demasiados intentos. Espera ${wait > 0 ? wait + ' min' : 'unos minutos'} y vuelve a intentar.`), { status: 429 });
+        }
         if (!res.ok) {
           const det = data?.details?.map((d) => `${d.field}: ${d.message}`).join(' · ');
           throw Object.assign(new Error(det || data?.error || `Error ${res.status}`), { status: res.status });
@@ -261,6 +295,7 @@ import '../styles/global.css';
         $('#app').classList.add('hidden');
         $('#auth').classList.remove('hidden'); $('#auth').classList.add('flex');
         $('#a-api').value = API;
+        showMfa(null);
       }
       function showApp() {
         $('#auth').classList.add('hidden'); $('#auth').classList.remove('flex');
@@ -270,30 +305,77 @@ import '../styles/global.css';
         load();
       }
 
+      const SUB = { login: 'Inicia sesión para ver tus gastos', register: 'Crea tu cuenta', recover: 'Recupera tu cuenta con la llave de recuperación' };
       function setMode(m) {
         mode = m;
-        const reg = m === 'register';
-        $('#auth-sub').textContent = reg ? 'Crea tu cuenta' : 'Inicia sesión para ver tus gastos';
-        $('#a-submit').textContent = reg ? 'Crear cuenta' : 'Entrar';
-        $('#a-toggle').textContent = reg ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Crear una';
+        const reg = m === 'register', rec = m === 'recover';
+        $('#auth-sub').textContent = SUB[m];
+        $('#a-submit').textContent = reg ? 'Crear cuenta' : rec ? 'Recuperar cuenta' : 'Entrar';
+        $('#a-toggle').textContent = m === 'login' ? '¿No tienes cuenta? Crear una' : '¿Ya tienes cuenta? Inicia sesión';
+        $('#a-forgot').classList.toggle('hidden', m !== 'login');
+        $('#a-rk').classList.toggle('hidden', !rec); $('#a-rk').required = rec;
+        $('#a-pass').placeholder = rec ? 'Nueva contraseña (mínimo 10 caracteres)' : 'Contraseña (mínimo 10 caracteres)';
       }
       $('#a-toggle').onclick = () => setMode(mode === 'login' ? 'register' : 'login');
+      $('#a-forgot').onclick = () => setMode('recover');
+
+      // ---------- MFA (Microsoft / Google Authenticator) ----------
+      // El mfaToken vive solo en memoria: dura 10 min, es de un solo uso y no sirve como sesión.
+      let mfa = null; // { token, enrolling }
+      function showMfa(r) {
+        mfa = r && { token: r.mfaToken, enrolling: !!r.mfaSetupRequired };
+        $('#auth-form').classList.toggle('hidden', !!mfa);
+        $('#mfa-form').classList.toggle('hidden', !mfa);
+        $('#mfa-form').reset();
+        if (!mfa) return;
+        $('#mfa-setup').classList.toggle('hidden', !mfa.enrolling);
+        $('#mfa-sub').textContent = mfa.enrolling
+          ? 'Para proteger tu cuenta, vincula una app de autenticación.'
+          : 'Escribe el código de 6 dígitos de tu app Authenticator.';
+        if (mfa.enrolling) { $('#mfa-qr').src = r.mfaSetup.qrCode; $('#mfa-secret').textContent = r.mfaSetup.secret; }
+        $('#mfa-code').focus();
+      }
+      $('#mfa-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const code = $('#mfa-code').value.replace(/\D/g, ''); // quita espacios u otros caracteres al pegar
+        if (code.length !== 6) return toast('El código debe tener 6 dígitos');
+        const path = mfa.enrolling ? '/v1/auth/mfa/setup/confirm' : '/v1/auth/login/mfa';
+        try {
+          setSession(await call('POST', path, { mfaToken: mfa.token, code }, { auth: false }));
+          $('#a-pass').value = $('#a-rk').value = '';
+          showMfa(null); setMode('login'); showApp();
+        } catch (err) {
+          toast(err.message);
+          // mfaToken vencido o anulado tras 5 intentos: hay que volver a poner la contraseña.
+          if (err.message.startsWith('mfaToken')) showMfa(null);
+          else { $('#mfa-code').value = ''; $('#mfa-code').focus(); }
+        }
+      };
+      $('#mfa-cancel').onclick = () => showMfa(null);
+      $('#mfa-secret-copy').onclick = () => navigator.clipboard.writeText($('#mfa-secret').textContent).then(() => toast('Clave copiada'));
 
       $('#auth-form').onsubmit = async (e) => {
         e.preventDefault();
         API = $('#a-api').value.trim().replace(/\/$/, '') || API;
         store.set('apiUrl', API);
+        const email = $('#a-email').value, pass = $('#a-pass').value;
+        const body = mode === 'recover' ? { email, recoveryKey: $('#a-rk').value.trim(), newPassword: pass } : { email, password: pass };
         try {
-          const r = await call('POST', '/v1/auth/' + mode, { email: $('#a-email').value, password: $('#a-pass').value }, { auth: false });
-          setSession(r);
+          // Ninguno de los tres entrega sesión: devuelven un mfaToken (y QR si toca configurar el Authenticator).
+          const r = await call('POST', '/v1/auth/' + mode, body, { auth: false });
           if (r.recoveryKey) {
+            pendingMfa = r;
             $('#rk').textContent = r.recoveryKey;
             $('#recovery').classList.remove('hidden'); $('#recovery').classList.add('flex');
-          } else showApp();
+          } else showMfa(r);
         } catch (err) { toast(err.message); }
       };
+      let pendingMfa = null; // respuesta guardada mientras el usuario anota la llave de recuperación
       $('#rk-copy').onclick = () => navigator.clipboard.writeText($('#rk').textContent).then(() => toast('Copiada'));
-      $('#rk-ok').onclick = () => { $('#recovery').classList.add('hidden'); $('#recovery').classList.remove('flex'); showApp(); };
+      $('#rk-ok').onclick = () => {
+        $('#recovery').classList.add('hidden'); $('#recovery').classList.remove('flex');
+        showMfa(pendingMfa); pendingMfa = null;
+      };
 
       $('#logout').onclick = async () => {
         try { await call('POST', '/v1/auth/logout', {}); } catch {}
