@@ -23,10 +23,6 @@ import '../styles/global.css';
         <button id="a-submit" class="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700">Entrar</button>
         <button type="button" id="a-toggle" class="w-full text-sm text-emerald-700 hover:underline">¿No tienes cuenta? Crear una</button>
         <button type="button" id="a-forgot" class="w-full text-xs text-slate-500 hover:underline">¿Olvidaste la contraseña o perdiste el celular?</button>
-        <label class="block border-t pt-3 text-xs text-slate-500">
-          URL de la API
-          <input id="a-api" class="mt-1 w-full rounded border border-slate-200 px-2 py-1 font-mono text-xs" />
-        </label>
       </form>
 
       <!-- Verificación del correo: código de 6 dígitos enviado al registrarse -->
@@ -78,7 +74,6 @@ import '../styles/global.css';
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <h1 class="text-lg font-bold">💸 Gastos</h1>
           <div class="flex items-center gap-3 text-sm">
-            <button id="api-url" class="hidden rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-500 hover:bg-slate-200 sm:block" title="Cambiar URL de la API"></button>
             <button id="logout" class="rounded-lg border px-3 py-1.5 hover:bg-slate-100">Salir</button>
           </div>
         </div>
@@ -233,6 +228,7 @@ import '../styles/global.css';
     <div id="toast" class="fixed bottom-4 left-1/2 z-30 hidden max-w-[90vw] -translate-x-1/2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white shadow-lg"></div>
 
     <script>
+      import { API_URL } from '../config';
       const $ = (s) => document.querySelector(s);
       const store = {
         get: (k, d = null) => localStorage.getItem(k) ?? d,
@@ -246,7 +242,8 @@ import '../styles/global.css';
         approved: 'bg-emerald-100 text-emerald-800', pending: 'bg-amber-100 text-amber-800',
         declined: 'bg-rose-100 text-rose-800', refunded: 'bg-sky-100 text-sky-800',
       };
-      let API = store.get('apiUrl', 'http://localhost:3000');
+      const API = API_URL.replace(/\/+$/, ''); // se configura en src/config.ts
+      store.del('apiUrl'); // versiones anteriores guardaban la URL en el navegador
       let mode = 'login';
 
       function money(n, cur = 'COP') {
@@ -314,14 +311,12 @@ import '../styles/global.css';
       function showAuth() {
         $('#app').classList.add('hidden');
         $('#auth').classList.remove('hidden'); $('#auth').classList.add('flex');
-        $('#a-api').value = API;
         showEmailVerify(null);
         showMfa(null);
       }
       function showApp() {
         $('#auth').classList.add('hidden'); $('#auth').classList.remove('flex');
         $('#app').classList.remove('hidden');
-        $('#api-url').textContent = API;
         showTab('resumen');
         load();
       }
@@ -456,8 +451,6 @@ import '../styles/global.css';
 
       $('#auth-form').onsubmit = async (e) => {
         e.preventDefault();
-        API = $('#a-api').value.trim().replace(/\/$/, '') || API;
-        store.set('apiUrl', API);
         const email = $('#a-email').value.trim(), pass = $('#a-pass').value;
         const body = mode === 'recover' ? { email, recoveryKey: $('#a-rk').value.trim(), newPassword: pass } : { email, password: pass };
         try {
@@ -495,10 +488,6 @@ import '../styles/global.css';
       $('#logout').onclick = async () => {
         try { await call('POST', '/v1/auth/logout', {}); } catch {}
         clearSession(); showAuth();
-      };
-      $('#api-url').onclick = () => {
-        const v = prompt('URL de la API', API);
-        if (v) { API = v.trim().replace(/\/$/, ''); store.set('apiUrl', API); $('#api-url').textContent = API; load(); }
       };
 
       // ---------- Datos ----------
