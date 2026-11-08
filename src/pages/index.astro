@@ -29,6 +29,21 @@ import '../styles/global.css';
         </label>
       </form>
 
+      <!-- Verificación del correo: código de 6 dígitos enviado al registrarse -->
+      <form id="email-form" class="hidden w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200">
+        <div>
+          <h1 class="text-2xl font-bold">📧 Verifica tu correo</h1>
+          <p class="text-sm text-slate-500">Te enviamos un código de 6 dígitos a <b id="ev-email" class="break-all text-slate-700"></b>. Vence en 10 minutos.</p>
+        </div>
+        <p id="ev-warn" class="hidden rounded-lg bg-amber-50 p-2 text-xs text-amber-800 ring-1 ring-amber-200"></p>
+        <input id="ev-code" required inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123 456"
+          class="w-full rounded-lg border border-slate-300 px-3 py-2 text-center font-mono text-2xl tracking-widest outline-none focus:border-emerald-500" />
+        <button id="ev-submit" class="w-full rounded-lg bg-emerald-600 py-2 font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">Verificar correo</button>
+        <button type="button" id="ev-resend" class="w-full rounded-lg border py-2 text-sm hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent">Reenviar código</button>
+        <p class="text-xs text-slate-400">¿No lo ves? Revisa la carpeta de spam o promociones.</p>
+        <button type="button" id="ev-cancel" class="w-full text-sm text-slate-500 hover:underline">Cancelar y volver</button>
+      </form>
+
       <!-- Segundo paso: código del Authenticator (y QR si aún no lo configuró) -->
       <form id="mfa-form" class="hidden w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg ring-1 ring-slate-200">
         <div>
@@ -263,14 +278,19 @@ import '../styles/global.css';
         }
         const text = await res.text();
         let data = null;
-        try { data = text ? JSON.parse(text) : null; } catch { data = { error: text }; } // p. ej. el 429 del rate limit llega en texto plano
+        try { data = text ? JSON.parse(text) : null; } catch { data = { error: text }; }
         if (res.status === 429) {
-          const wait = Math.ceil(Number(res.headers.get('RateLimit-Reset')) / 60);
-          throw Object.assign(new Error(`Demasiados intentos. Espera ${wait > 0 ? wait + ' min' : 'unos minutos'} y vuelve a intentar.`), { status: 429 });
+          // La API responde { error, retryAfterSec }: límite general de /v1/auth/* o espera entre reenvíos del código.
+          const retryAfterSec = Number(data?.retryAfterSec ?? res.headers.get('RateLimit-Reset')) || 0;
+          const generic = !data?.error || data.error.startsWith('Demasiados intentos');
+          const msg = generic && retryAfterSec >= 60
+            ? `Demasiados intentos. Espera ${Math.ceil(retryAfterSec / 60)} min y vuelve a intentar.`
+            : data?.error || 'Demasiados intentos. Espera unos minutos y vuelve a intentar.';
+          throw Object.assign(new Error(msg), { status: 429, data, retryAfterSec });
         }
         if (!res.ok) {
           const det = data?.details?.map((d) => `${d.field}: ${d.message}`).join(' · ');
-          throw Object.assign(new Error(det || data?.error || `Error ${res.status}`), { status: res.status });
+          throw Object.assign(new Error(det || data?.error || `Error ${res.status}`), { status: res.status, data });
         }
         return data;
       }
@@ -295,6 +315,7 @@ import '../styles/global.css';
         $('#app').classList.add('hidden');
         $('#auth').classList.remove('hidden'); $('#auth').classList.add('flex');
         $('#a-api').value = API;
+        showEmailVerify(null);
         showMfa(null);
       }
       function showApp() {
@@ -324,6 +345,7 @@ import '../styles/global.css';
       let mfa = null; // { token, enrolling }
       function showMfa(r) {
         mfa = r && { token: r.mfaToken, enrolling: !!r.mfaSetupRequired };
+        if (mfa) $('#email-form').classList.add('hidden');
         $('#auth-form').classList.toggle('hidden', !!mfa);
         $('#mfa-form').classList.toggle('hidden', !mfa);
         $('#mfa-form').reset();
@@ -354,27 +376,120 @@ import '../styles/global.css';
       $('#mfa-cancel').onclick = () => showMfa(null);
       $('#mfa-secret-copy').onclick = () => navigator.clipboard.writeText($('#mfa-secret').textContent).then(() => toast('Clave copiada'));
 
+      // ---------- Verificación del correo ----------
+      // Las credenciales quedan solo en memoria para hacer login automático al verificar el correo.
+      let ev = null; // { email, password, sentAt }
+      let resendTimer;
+      function showEmailVerify(v, { emailSent = true, warn = '' } = {}) {
+        ev = v;
+        clearInterval(resendTimer);
+        $('#email-form').classList.toggle('hidden', !ev);
+        $('#auth-form').classList.toggle('hidden', !!ev);
+        $('#email-form').reset();
+        if (!ev) return;
+        $('#mfa-form').classList.add('hidden');
+        $('#ev-email').textContent = ev.email;
+        setEvWarn(warn || (emailSent ? '' : 'No pudimos enviar el correo. Pulsa “Reenviar código”.'));
+        // La API exige esperar 60 s entre envíos; si el correo no salió se puede reenviar ya.
+        startResendCooldown(emailSent && ev.sentAt ? 60 - Math.floor((Date.now() - ev.sentAt) / 1000) : 0);
+        $('#ev-code').focus();
+      }
+      function setEvWarn(msg) {
+        $('#ev-warn').textContent = msg;
+        $('#ev-warn').classList.toggle('hidden', !msg);
+      }
+      function startResendCooldown(sec) {
+        clearInterval(resendTimer);
+        const btn = $('#ev-resend');
+        let left = Math.max(0, Math.ceil(sec));
+        const tick = () => {
+          btn.disabled = left > 0;
+          btn.textContent = left > 0 ? `Reenviar código (${left} s)` : 'Reenviar código';
+          if (left-- <= 0) clearInterval(resendTimer);
+        };
+        tick();
+        if (left >= 0) resendTimer = setInterval(tick, 1000);
+      }
+      $('#email-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const code = $('#ev-code').value.replace(/\D/g, '');
+        if (code.length !== 6) return toast('El código debe tener 6 dígitos');
+        $('#ev-submit').disabled = true;
+        try {
+          await call('POST', '/v1/auth/verify-email', { email: ev.email, code }, { auth: false });
+          toast('Correo verificado ✅');
+          const { email, password } = ev;
+          showEmailVerify(null);
+          // Con el correo verificado, el login devuelve el QR (primera vez) o pide el código del Authenticator.
+          if (password) {
+            try { showMfa(await call('POST', '/v1/auth/login', { email, password }, { auth: false })); }
+            catch (err) { toast(err.message); setMode('login'); }
+          } else setMode('login');
+        } catch (err) {
+          $('#ev-code').value = ''; $('#ev-code').focus();
+          if (err.status === 401 && err.data?.attemptsLeft != null) {
+            const n = err.data.attemptsLeft;
+            if (n > 0) toast(`Código incorrecto. Te quedan ${n} intento${n === 1 ? '' : 's'}.`);
+            else { toast('Código incorrecto.'); setEvWarn('Agotaste los intentos de este código. Pide uno nuevo con “Reenviar código”.'); }
+          } else {
+            toast(err.message);
+            // Código vencido, sin intentos o inexistente: hay que pedir uno nuevo.
+            if (err.status === 400 && /pide uno nuevo|pide un código nuevo/.test(err.message)) setEvWarn(err.message);
+          }
+        } finally { $('#ev-submit').disabled = false; }
+      };
+      $('#ev-resend').onclick = async () => {
+        $('#ev-resend').disabled = true;
+        try {
+          await call('POST', '/v1/auth/resend-code', { email: ev.email }, { auth: false });
+          ev.sentAt = Date.now();
+          setEvWarn('');
+          toast('Te enviamos un código nuevo. El anterior ya no sirve.');
+          startResendCooldown(60);
+          $('#ev-code').focus();
+        } catch (err) {
+          toast(err.message);
+          startResendCooldown(err.status === 429 ? err.retryAfterSec || 60 : 0);
+        }
+      };
+      $('#ev-cancel').onclick = () => showEmailVerify(null);
+
       $('#auth-form').onsubmit = async (e) => {
         e.preventDefault();
         API = $('#a-api').value.trim().replace(/\/$/, '') || API;
         store.set('apiUrl', API);
-        const email = $('#a-email').value, pass = $('#a-pass').value;
+        const email = $('#a-email').value.trim(), pass = $('#a-pass').value;
         const body = mode === 'recover' ? { email, recoveryKey: $('#a-rk').value.trim(), newPassword: pass } : { email, password: pass };
         try {
-          // Ninguno de los tres entrega sesión: devuelven un mfaToken (y QR si toca configurar el Authenticator).
+          // Ninguno entrega sesión. Registro → código al correo; login/recover → mfaToken (y QR si toca).
           const r = await call('POST', '/v1/auth/' + mode, body, { auth: false });
+          pendingAuth = { r, email, password: pass, sentAt: mode === 'register' ? Date.now() : null };
           if (r.recoveryKey) {
-            pendingMfa = r;
             $('#rk').textContent = r.recoveryKey;
             $('#recovery').classList.remove('hidden'); $('#recovery').classList.add('flex');
-          } else showMfa(r);
-        } catch (err) { toast(err.message); }
+          } else continueAuth();
+        } catch (err) {
+          // Contraseña correcta pero correo sin verificar: pedir el código del correo.
+          if (err.status === 403 && err.data?.emailVerificationRequired) {
+            showEmailVerify({ email, password: pass, sentAt: null },
+              { warn: 'Tu correo aún no está verificado. Escribe el código que te enviamos o pide uno nuevo.' });
+          } else toast(err.message);
+        }
       };
-      let pendingMfa = null; // respuesta guardada mientras el usuario anota la llave de recuperación
+      let pendingAuth = null; // respuesta guardada mientras el usuario anota la llave de recuperación
+      function continueAuth() {
+        const { r, email, password, sentAt } = pendingAuth; pendingAuth = null;
+        if (r.emailVerificationRequired) {
+          showEmailVerify({ email, password, sentAt }, {
+            emailSent: r.emailSent !== false,
+            warn: sentAt ? '' : 'Tu correo aún no está verificado. Escribe el código que te enviamos o pide uno nuevo.',
+          });
+        } else showMfa(r);
+      }
       $('#rk-copy').onclick = () => navigator.clipboard.writeText($('#rk').textContent).then(() => toast('Copiada'));
       $('#rk-ok').onclick = () => {
         $('#recovery').classList.add('hidden'); $('#recovery').classList.remove('flex');
-        showMfa(pendingMfa); pendingMfa = null;
+        continueAuth();
       };
 
       $('#logout').onclick = async () => {
