@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { VERSION } from '../config';
 ---
 <!doctype html>
 <html lang="es">
@@ -225,7 +226,9 @@ import '../styles/global.css';
       </div>
     </div>
 
-    <div id="toast" class="fixed bottom-4 left-1/2 z-30 hidden max-w-[90vw] -translate-x-1/2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white shadow-lg"></div>
+    <div class="pointer-events-none fixed bottom-1 right-2 z-10 select-none text-[10px] text-slate-400">v{VERSION}</div>
+
+    <div id="toast"class="fixed bottom-4 left-1/2 z-30 hidden max-w-[90vw] -translate-x-1/2 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white shadow-lg"></div>
 
     <script>
       import { API_URL } from '../config';
