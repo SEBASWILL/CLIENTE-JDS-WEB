@@ -1,0 +1,24 @@
+---
+import Logo from '../Logo.astro';
+
+const links = [
+  { href: '#como-funciona', label: 'Cómo funciona' },
+  { href: '#funciones', label: 'Funciones' },
+  { href: '#seguridad', label: 'Seguridad' },
+  { href: '#descarga', label: 'App' },
+];
+---
+<header class="sticky top-0 z-20 border-b border-borde/70 bg-fondo/80 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+    <a href="/"><Logo class="text-lg" /></a>
+
+    <nav class="hidden items-center gap-6 text-sm text-texto-2 md:flex">
+      {links.map((link) => <a href={link.href} class="transition hover:text-texto">{link.label}</a>)}
+    </nav>
+
+    <div class="flex items-center gap-2 text-sm">
+      <a href="/app" class="hidden rounded-lg px-3 py-1.5 text-texto-2 transition hover:bg-superficie hover:text-texto sm:block">Iniciar sesión</a>
+      <a href="/app" class="rounded-lg bg-cashly px-3 py-1.5 font-semibold text-white transition hover:opacity-90">Crear cuenta</a>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,45 @@
+/* ============================================================
+   CASHLY · Paleta de colores y tokens de diseño
+   Estilo: tecnológico, oscuro, un solo acento (azul eléctrico → cian)
+   Fuente recomendada: Inter (pesos 500, 600, 700, 800)
+   ============================================================ */
+
+:root {
+  /* ---------- MARCA ---------- */
+  --cashly-azul:        #4C6FFF;   /* acento principal (botones, enlaces, pestaña activa) */
+  --cashly-cian:        #22D3EE;   /* acento secundario (final del degradado) */
+  --cashly-degradado:   linear-gradient(135deg, #4C6FFF 0%, #22D3EE 100%);
+  --cashly-metal:       linear-gradient(180deg, #FFFFFF 0%, #B9C4E8 100%); /* la "C" del logo */
+
+  /* ---------- FONDOS (modo oscuro, el principal) ---------- */
+  --fondo:              #0A0F1E;   /* fondo de pantalla / página */
+  --fondo-degradado:    linear-gradient(135deg, #0A0F1E 0%, #16204A 100%); /* ícono y tarjeta principal */
+  --superficie:         #131A2E;   /* tarjetas */
+  --superficie-2:       #0E1424;   /* campos de texto, zonas hundidas */
+  --borde:              #1F2943;   /* líneas y bordes de tarjetas */
+
+  /* ---------- TEXTO ---------- */
+  --texto:              #FFFFFF;
+  --texto-2:            #8791AD;   /* textos secundarios */
+  --texto-3:            #5B6482;   /* textos de ayuda, placeholders */
+
+  /* ---------- ESTADOS ---------- */
+  --exito:              #22C55E;   /* meta en orden */
+  --alerta:             #F59E0B;   /* meta casi al límite */
+  --error:              #EF4444;   /* meta superada / borrar / errores */
+
+  /* ---------- CATEGORÍAS ---------- */
+  --cat-comida:         #F97316;
+  --cat-transporte:     #3B82F6;
+  --cat-ocio:           #A855F7;
+  --cat-compras:        #EC4899;
+  --cat-salud:          #14B8A6;
+  --cat-otros:          #64748B;
+
+  /* ---------- OPCIONAL: SECCIONES CLARAS (por ejemplo, el login o la web) ---------- */
+  --claro-fondo:        #F4F5F9;
+  --claro-superficie:   #FFFFFF;
+  --claro-texto:        #0E1525;
+  --claro-texto-2:      #6B7385;
+  --claro-borde:        #ECEEF4;
+}

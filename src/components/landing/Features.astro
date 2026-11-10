@@ -1,0 +1,78 @@
+---
+const features = [
+  {
+    icon: '📊',
+    title: 'Resumen al instante',
+    text: 'Total gastado, número de movimientos y cuánto va por tarjeta y por efectivo.',
+  },
+  {
+    icon: '🏷️',
+    title: 'Categorías',
+    text: 'Comida, mercado, transporte, ocio, servicios, salud… Cambia la categoría de cualquier gasto con un toque.',
+  },
+  {
+    icon: '📅',
+    title: 'Reportes diarios y semanales',
+    text: 'Gráfico de los últimos 30 días, tu promedio diario, el día de mayor gasto y la comparación semana a semana.',
+  },
+  {
+    icon: '🎯',
+    title: 'Metas mensuales',
+    text: 'Ponle un límite al mes o a una categoría y sabe cuánto puedes gastar por día para cumplirlo.',
+  },
+  {
+    icon: '✍️',
+    title: 'Gastos en efectivo',
+    text: 'Lo que pagas en efectivo lo registras a mano en segundos para que el resumen quede completo.',
+  },
+  {
+    icon: '🏪',
+    title: 'Top comercios',
+    text: 'Descubre en qué lugares se va la mayor parte de tu plata.',
+  },
+];
+---
+<section id="funciones" class="scroll-mt-20">
+  <div class="mx-auto max-w-6xl px-4 py-20">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="text-sm font-semibold text-brand-cian">Funciones</p>
+      <h2 class="mt-2 text-3xl font-bold tracking-tight">Todo lo que necesitas para entender tus gastos</h2>
+    </div>
+
+    <div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {features.map((f) => (
+        <div class="rounded-2xl bg-superficie p-5 ring-1 ring-borde transition hover:-translate-y-0.5 hover:ring-brand/50">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-superficie-2 text-xl ring-1 ring-borde">{f.icon}</span>
+          <h3 class="mt-4 font-semibold">{f.title}</h3>
+          <p class="mt-1 text-sm text-texto-2">{f.text}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- Ejemplo de meta, igual a las tarjetas de la pestaña Metas -->
+    <div class="mt-20 grid items-center gap-10 lg:grid-cols-2">
+      <div>
+        <h3 class="text-2xl font-bold tracking-tight">Sabe cada día cuánto te queda</h3>
+        <p class="mt-3 text-texto-2">
+          Las metas te dicen cuánto llevas, cuánto puedes gastar por día y en cuánto terminarías el mes a este ritmo.
+          La barra cambia a <span class="text-alerta">ámbar</span> cuando pasas el 80 % y a <span class="text-error">rojo</span> si te pasas.
+        </p>
+      </div>
+      <div class="mx-auto w-full max-w-sm rounded-2xl bg-superficie p-5 shadow-2xl shadow-brand/10 ring-1 ring-borde">
+        <h4 class="flex items-center gap-2 font-semibold">
+          <span class="h-2.5 w-2.5 rounded-full bg-cat-comida"></span> Comida
+        </h4>
+        <p class="mt-2 text-3xl font-bold tabular-nums">$ 188.000</p>
+        <p class="text-xs text-texto-2">te quedan · meta $ 600.000</p>
+        <div class="mt-3 h-3 overflow-hidden rounded-full bg-superficie-2">
+          <div class="h-3 rounded-full bg-exito" style="width:69%"></div>
+        </div>
+        <p class="mt-1 text-xs text-texto-2">69% usado · llevas $ 412.000</p>
+        <ul class="mt-4 space-y-1 text-sm text-texto-2">
+          <li>📅 Puedes gastar <b class="text-texto">$ 8.500</b> por día</li>
+          <li>📈 A este ritmo terminarías en <b class="text-texto">$ 575.000</b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

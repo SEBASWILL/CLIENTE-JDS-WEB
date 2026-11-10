@@ -1,0 +1,16 @@
+---
+import Logo from '../Logo.astro';
+import { VERSION } from '../../config';
+
+const year = new Date().getFullYear();
+---
+<footer class="border-t border-borde bg-superficie-2">
+  <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-sm text-texto-2 sm:flex-row">
+    <p class="flex items-center gap-2"><Logo size={24} class="text-texto" /> · © {year}</p>
+    <div class="flex items-center gap-4">
+      <a href="/app" class="transition hover:text-texto">Entrar</a>
+      <a href="#descarga" class="transition hover:text-texto">App móvil</a>
+      <span class="text-xs text-texto-3">v{VERSION}</span>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,107 @@
+---
+// Vista previa estática del panel, con los colores de la paleta de Cashly.
+const categories = [
+  { name: 'Comida', amount: '$ 412.000', width: '100%', color: 'bg-cat-comida' },
+  { name: 'Transporte', amount: '$ 176.300', width: '43%', color: 'bg-cat-transporte' },
+  { name: 'Ocio', amount: '$ 98.000', width: '24%', color: 'bg-cat-ocio' },
+  { name: 'Salud', amount: '$ 52.000', width: '13%', color: 'bg-cat-salud' },
+];
+
+const transactions = [
+  { icon: '💳', merchant: 'Rappi', detail: 'Hoy, 1:24 p. m. · Visa 4242 · Atajo iOS', amount: '$ 25.000', status: 'Aprobada', ok: true },
+  { icon: '💵', merchant: 'Panadería', detail: 'Hoy, 8:10 a. m. · Manual', amount: '$ 9.500', status: 'Aprobada', ok: true },
+  { icon: '💳', merchant: 'Netflix', detail: 'Ayer · Visa 4242 · Atajo iOS', amount: '$ 39.900', status: 'Declinada', ok: false },
+];
+---
+<section class="relative overflow-hidden">
+  <!-- Brillos decorativos -->
+  <div class="pointer-events-none absolute -top-40 left-1/2 -z-10 h-96 w-[48rem] -translate-x-1/2 rounded-full bg-brand/25 blur-3xl"></div>
+  <div class="pointer-events-none absolute top-1/2 -right-40 -z-10 h-80 w-80 rounded-full bg-brand-cian/15 blur-3xl"></div>
+
+  <div class="mx-auto grid max-w-6xl items-center gap-14 px-4 py-16 lg:grid-cols-2 lg:py-24">
+    <!-- Texto -->
+    <div>
+      <span class="inline-flex items-center gap-2 rounded-full bg-superficie px-3 py-1 text-xs font-medium text-texto-2 ring-1 ring-borde">
+        <span class="h-1.5 w-1.5 rounded-full bg-brand-cian"></span>
+        Funciona con Apple Pay y Atajos de iPhone
+      </span>
+      <h1 class="mt-5 text-4xl font-extrabold tracking-tight text-balance sm:text-5xl">
+        Tus gastos se registran <span class="text-cashly">solos</span> cada vez que pagas.
+      </h1>
+      <p class="mt-5 max-w-xl text-lg text-texto-2">
+        Pagas con el iPhone y el gasto aparece clasificado en tu panel: cuánto llevas, en qué se va tu plata
+        y cuánto te queda del mes. Los pagos en efectivo los agregas en segundos.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/app" class="rounded-xl bg-cashly px-5 py-3 font-semibold text-white shadow-lg shadow-brand/30 transition hover:opacity-90">
+          Empezar ahora
+        </a>
+        <a href="#descarga" class="rounded-xl bg-superficie px-5 py-3 font-semibold ring-1 ring-borde transition hover:bg-superficie-2">
+          Descargar la app
+        </a>
+      </div>
+      <p class="mt-4 text-sm text-texto-3">🔐 Protegido con verificación en dos pasos.</p>
+    </div>
+
+    <!-- Vista previa del panel -->
+    <div class="relative">
+      <div class="space-y-3 rounded-3xl bg-superficie-2 p-3 shadow-2xl shadow-brand/10 ring-1 ring-borde sm:p-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-2xl bg-cashly p-4 text-white">
+            <p class="text-xs font-medium uppercase opacity-80">Total gastado</p>
+            <p class="mt-1 text-2xl font-bold">$ 984.800</p>
+          </div>
+          <div class="rounded-2xl bg-superficie p-4 ring-1 ring-borde">
+            <p class="text-xs font-medium text-texto-2 uppercase">Movimientos</p>
+            <p class="mt-1 text-2xl font-bold">42</p>
+            <p class="text-xs text-error">1 declinada</p>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-superficie p-4 ring-1 ring-borde">
+          <p class="mb-3 text-sm font-semibold">Por categoría</p>
+          <div class="space-y-2.5">
+            {categories.map((c) => (
+              <div>
+                <div class="mb-1 flex justify-between text-xs">
+                  <span>{c.name}</span>
+                  <span class="text-texto-2 tabular-nums">{c.amount}</span>
+                </div>
+                <div class="h-2 rounded-full bg-superficie-2">
+                  <div class={`h-2 rounded-full ${c.color}`} style={`width:${c.width}`}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <ul class="divide-y divide-borde rounded-2xl bg-superficie ring-1 ring-borde">
+          {transactions.map((t) => (
+            <li class="flex items-center gap-3 px-4 py-3">
+              <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-superficie-2 text-base">{t.icon}</span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold">{t.merchant}</p>
+                <p class="truncate text-[11px] text-texto-3">{t.detail}</p>
+              </div>
+              <div class="text-right">
+                <p class:list={['text-sm font-semibold tabular-nums', !t.ok && 'text-texto-3 line-through']}>{t.amount}</p>
+                <span class:list={['rounded-full px-2 py-0.5 text-[10px] font-semibold', t.ok ? 'bg-exito/15 text-exito' : 'bg-error/15 text-error']}>
+                  {t.status}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Notificación flotante -->
+      <div class="absolute -top-9 -left-8 hidden items-center gap-3 rounded-2xl bg-superficie/95 p-3 pr-5 shadow-xl ring-1 ring-borde backdrop-blur sm:flex">
+        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-cashly font-bold text-white">⚡</span>
+        <div>
+          <p class="text-sm font-semibold">Gasto registrado</p>
+          <p class="text-xs text-texto-2">Rappi · $ 25.000</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

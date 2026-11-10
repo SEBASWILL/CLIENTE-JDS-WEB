@@ -1,0 +1,41 @@
+---
+const questions = [
+  {
+    q: '¿Necesito un iPhone?',
+    a: 'Para el registro automático, sí: usa Apple Pay y la app Atajos. Desde cualquier otro dispositivo puedes entrar a la web, ver tus reportes y registrar gastos a mano.',
+  },
+  {
+    q: '¿Qué pasa con lo que pago en efectivo?',
+    a: 'Lo agregas en el formulario de “Registrar gasto manual”: comercio, monto y categoría. Queda sumado en el mismo resumen.',
+  },
+  {
+    q: '¿Qué hago si olvido la contraseña o pierdo el celular?',
+    a: 'Usa la opción “¿Olvidaste la contraseña?” con la llave de recuperación que te mostramos al crear la cuenta.',
+  },
+  {
+    q: '¿Puedo corregir un gasto?',
+    a: 'Sí. Puedes cambiar su categoría, marcarlo como aprobado, pendiente, declinado o reembolsado, o borrarlo.',
+  },
+];
+---
+<section class="mx-auto max-w-3xl px-4 pb-24">
+  <h2 class="text-center text-3xl font-bold tracking-tight">Preguntas frecuentes</h2>
+  <div class="mt-10 divide-y divide-borde rounded-2xl bg-superficie ring-1 ring-borde">
+    {questions.map((item) => (
+      <details class="group p-5">
+        <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+          {item.q}
+          <span class="text-brand-cian transition group-open:rotate-45">＋</span>
+        </summary>
+        <p class="mt-3 text-sm text-texto-2">{item.a}</p>
+      </details>
+    ))}
+  </div>
+
+  <div class="mt-20 text-center">
+    <h2 class="text-2xl font-bold tracking-tight">¿Listo para saber en qué se va tu plata?</h2>
+    <a href="/app" class="mt-6 inline-block rounded-xl bg-cashly px-6 py-3 font-semibold text-white shadow-lg shadow-brand/30 transition hover:opacity-90">
+      Crear mi cuenta
+    </a>
+  </div>
+</section>

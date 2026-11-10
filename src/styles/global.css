@@ -1,1 +1,114 @@
 @import "tailwindcss";
+@import "./cashly-paleta.css";
+
+/*
+ * Colores de la paleta de Cashly (cashly-paleta.css) disponibles como clases de Tailwind:
+ *   bg-fondo, bg-superficie, ring-borde, text-texto-2, bg-brand, text-exito, bg-cat-comida…
+ */
+@theme inline {
+  --color-brand: var(--cashly-azul);
+  --color-brand-cian: var(--cashly-cian);
+
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-borde: var(--borde);
+
+  --color-texto: var(--texto);
+  --color-texto-2: var(--texto-2);
+  --color-texto-3: var(--texto-3);
+
+  --color-exito: var(--exito);
+  --color-alerta: var(--alerta);
+  --color-error: var(--error);
+
+  --color-cat-comida: var(--cat-comida);
+  --color-cat-transporte: var(--cat-transporte);
+  --color-cat-ocio: var(--cat-ocio);
+  --color-cat-compras: var(--cat-compras);
+  --color-cat-salud: var(--cat-salud);
+  --color-cat-otros: var(--cat-otros);
+
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Degradados de marca */
+@utility bg-cashly {
+  background-image: var(--cashly-degradado);
+}
+@utility bg-cashly-fondo {
+  background-image: var(--fondo-degradado);
+}
+@utility text-cashly {
+  background-image: var(--cashly-degradado);
+  background-clip: text;
+  color: transparent;
+}
+
+/*
+ * Piezas de la interfaz de la app (/app).
+ * Así el HTML usa nombres cortos (panel, field, btn-primary…) en vez de repetir utilidades.
+ */
+@layer components {
+  /* ---------- Contenedores ---------- */
+  .panel {
+    @apply rounded-2xl bg-superficie p-5 ring-1 ring-borde;
+  }
+  .panel-title {
+    @apply mb-4 font-semibold;
+  }
+  .auth-card {
+    @apply w-full max-w-sm space-y-4 rounded-3xl bg-superficie p-7 shadow-2xl shadow-brand/10 ring-1 ring-borde;
+  }
+
+  /* ---------- Campos ---------- */
+  .field {
+    @apply rounded-xl bg-superficie-2 px-3.5 py-2.5 text-texto ring-1 ring-borde outline-none transition placeholder:text-texto-3 focus:ring-2 focus:ring-brand;
+  }
+  .field-sm {
+    @apply rounded-lg bg-superficie-2 px-2.5 py-1.5 text-xs text-texto ring-1 ring-borde outline-none transition focus:ring-brand;
+  }
+  .field-code {
+    @apply text-center font-mono text-2xl tracking-[0.3em];
+  }
+
+  /* ---------- Botones ---------- */
+  .btn-primary {
+    @apply rounded-xl bg-cashly px-4 py-2.5 font-semibold text-white shadow-lg shadow-brand/25 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply rounded-xl bg-superficie-2 px-4 py-2.5 text-sm font-medium text-texto ring-1 ring-borde transition hover:ring-brand/60 disabled:cursor-not-allowed disabled:text-texto-3 disabled:hover:ring-borde;
+  }
+  .btn-danger {
+    @apply rounded-xl bg-error px-4 py-2.5 font-semibold text-white transition hover:opacity-90;
+  }
+  .btn-link {
+    @apply w-full text-sm text-texto-2 transition hover:text-texto;
+  }
+
+  /* ---------- Textos y barras ---------- */
+  .kpi-label {
+    @apply text-xs font-medium tracking-wide text-texto-2 uppercase;
+  }
+  .kpi-value {
+    @apply mt-1 text-2xl font-bold tabular-nums;
+  }
+  .bar-track {
+    @apply h-2 overflow-hidden rounded-full bg-superficie-2;
+  }
+  .empty {
+    @apply text-sm text-texto-3;
+  }
+}
+
+/* Aparición de notificaciones y diálogos */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-aparecer { animation: aparecer 0.2s ease-out; }
+
+dialog.cashly-dialog::backdrop {
+  background: rgb(10 15 30 / 0.75);
+  backdrop-filter: blur(4px);
+}

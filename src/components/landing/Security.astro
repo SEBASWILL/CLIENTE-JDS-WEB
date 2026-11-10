@@ -1,0 +1,47 @@
+---
+const items = [
+  {
+    icon: '🔐',
+    title: 'Verificación en dos pasos',
+    text: 'Además de tu contraseña, cada inicio de sesión pide un código de Microsoft o Google Authenticator.',
+  },
+  {
+    icon: '📧',
+    title: 'Correo verificado',
+    text: 'Al registrarte confirmas tu correo con un código de 6 dígitos.',
+  },
+  {
+    icon: '🔑',
+    title: 'Llave de recuperación',
+    text: 'Si olvidas la contraseña o pierdes el celular, recuperas tu cuenta con una llave que solo tú tienes.',
+  },
+  {
+    icon: '⏱️',
+    title: 'Sesiones que vencen',
+    text: 'Las sesiones se renuevan solas y caducan; el Atajo usa su propio token, que puedes revocar.',
+  },
+];
+---
+<section id="seguridad" class="scroll-mt-20 border-y border-borde bg-superficie-2">
+  <div class="mx-auto max-w-6xl px-4 py-20">
+    <div class="max-w-2xl">
+      <p class="text-sm font-semibold text-brand-cian">Seguridad</p>
+      <h2 class="mt-2 text-3xl font-bold tracking-tight">Tu información financiera, bien protegida</h2>
+      <p class="mt-3 text-texto-2">Solo tú puedes entrar a tu cuenta, incluso si alguien conoce tu contraseña.</p>
+    </div>
+
+    <div class="mt-12 grid gap-4 sm:grid-cols-2">
+      {items.map((item) => (
+        <div class="flex gap-4 rounded-2xl bg-superficie p-5 ring-1 ring-borde">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-superficie-2 text-xl ring-1 ring-borde">
+            {item.icon}
+          </span>
+          <div>
+            <h3 class="font-semibold">{item.title}</h3>
+            <p class="mt-1 text-sm text-texto-2">{item.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

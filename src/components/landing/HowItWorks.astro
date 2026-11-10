@@ -1,0 +1,59 @@
+---
+const steps = [
+  {
+    icon: '💳',
+    title: 'Pagas con Apple Pay',
+    text: 'Usas tu iPhone o Apple Watch como siempre, en cualquier comercio.',
+  },
+  {
+    icon: '⚡',
+    title: 'El Atajo envía el pago',
+    text: 'Una automatización de Atajos manda el comercio, el monto y la tarjeta a tu cuenta en segundo plano.',
+  },
+  {
+    icon: '📊',
+    title: 'Lo ves en tu panel',
+    text: 'El gasto aparece en tu resumen, se suma a su categoría y descuenta de tus metas del mes.',
+  },
+];
+---
+<section id="como-funciona" class="scroll-mt-20 border-y border-borde bg-superficie-2">
+  <div class="mx-auto max-w-6xl px-4 py-20">
+    <div class="max-w-2xl">
+      <p class="text-sm font-semibold text-brand-cian">Cómo funciona</p>
+      <h2 class="mt-2 text-3xl font-bold tracking-tight">Sin escribir nada. Sin revisar extractos.</h2>
+      <p class="mt-3 text-texto-2">Configuras el Atajo una vez y desde ahí cada pago llega solo.</p>
+    </div>
+
+    <div class="mt-12 grid items-start gap-8 lg:grid-cols-5">
+      <ol class="space-y-4 lg:col-span-3">
+        {steps.map((step, i) => (
+          <li class="flex gap-4 rounded-2xl bg-superficie p-5 ring-1 ring-borde">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-superficie-2 text-xl ring-1 ring-borde">
+              {step.icon}
+            </span>
+            <div>
+              <p class="text-xs font-semibold text-brand">Paso {i + 1}</p>
+              <h3 class="font-semibold">{step.title}</h3>
+              <p class="mt-1 text-sm text-texto-2">{step.text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <!-- Lo que envía el Atajo (mismo estilo que el simulador de la app) -->
+      <div class="rounded-2xl bg-cashly-fondo p-5 ring-1 ring-borde lg:col-span-2">
+        <p class="font-semibold">📱 Lo que envía el Atajo</p>
+        <p class="text-xs text-texto-2">Así llega cada pago a tu cuenta.</p>
+        <pre class="mt-4 overflow-auto rounded-lg bg-fondo/70 p-4 text-xs leading-relaxed text-brand-cian">{`{
+  "merchant": "Rappi",
+  "amount": "$25.000,00",
+  "card": "Visa 4242",
+  "date": "2026-11-09T13:24:00Z"
+}
+
+→ 201 Gasto registrado ✓`}</pre>
+      </div>
+    </div>
+  </div>
+</section>
