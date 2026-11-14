@@ -8,85 +8,143 @@ import logo from '../assets/logo.jpeg';
 const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png' });
 ---
 <!doctype html>
-<html lang="es" class="[color-scheme:dark]">
+<html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{APP_NAME}</title>
-    <meta name="theme-color" content="#0A0F1E" />
+    <meta name="theme-color" content="#F4F5F9" />
     <link rel="icon" type="image/png" href={favicon.src} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet" />
   </head>
-  <body class="min-h-screen bg-fondo font-inter text-texto antialiased">
-    <!-- Brillos de fondo (mismo estilo que la landing) -->
-    <div class="pointer-events-none fixed -top-48 left-1/2 -z-10 h-96 w-[56rem] -translate-x-1/2 rounded-full bg-brand/20 blur-3xl"></div>
-    <div class="pointer-events-none fixed -right-40 bottom-0 -z-10 h-80 w-80 rounded-full bg-brand-cian/10 blur-3xl"></div>
+  <body class="tema-claro min-h-screen bg-fondo font-inter text-texto antialiased">
 
     <!-- ============ LOGIN / REGISTRO ============ -->
-    <main id="auth" class="hidden min-h-screen items-center justify-center p-4">
-      <form id="auth-form" class="auth-card">
-        <div class="space-y-3 pb-2 text-center">
-          <a href="/" class="inline-block text-2xl"><Logo size={40} /></a>
-          <p id="auth-sub" class="text-sm text-texto-2">Inicia sesión para ver tus gastos</p>
-        </div>
-        <input id="a-email" type="email" required placeholder="correo@ejemplo.com" class="field w-full" />
-        <input id="a-rk" placeholder="Llave de recuperación" autocomplete="off" class="field hidden w-full font-mono text-sm" />
-        <input id="a-pass" type="password" required minlength="10" placeholder="Contraseña (mínimo 10 caracteres)" class="field w-full" />
-        <button id="a-submit" class="btn-primary w-full">Entrar</button>
-        <button type="button" id="a-toggle" class="btn-link font-medium text-brand-cian hover:text-brand-cian/80">¿No tienes cuenta? Crear una</button>
-        <button type="button" id="a-forgot" class="btn-link text-xs">¿Olvidaste la contraseña o perdiste el celular?</button>
-      </form>
+    <main id="auth" class="hidden min-h-screen lg:grid-cols-[1.05fr_1fr]">
+      <!-- Panel de marca (solo en pantallas grandes) -->
+      <aside class="relative hidden overflow-hidden bg-cashly-fondo p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <div class="fondo-cuadricula pointer-events-none absolute inset-0"></div>
+        <div class="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-brand/30 blur-3xl"></div>
+        <div class="pointer-events-none absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-brand-cian/20 blur-3xl"></div>
 
-      <!-- Verificación del correo: código de 6 dígitos enviado al registrarse -->
-      <form id="email-form" class="auth-card hidden">
-        <div>
-          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/15 text-2xl">📧</span>
-          <h1 class="mt-4 text-2xl font-bold">Verifica tu correo</h1>
-          <p class="mt-1 text-sm text-texto-2">Te enviamos un código de 6 dígitos a <b id="ev-email" class="break-all text-texto"></b>. Vence en 10 minutos.</p>
-        </div>
-        <p id="ev-warn" class="hidden rounded-xl bg-alerta/10 p-3 text-xs text-alerta ring-1 ring-alerta/30"></p>
-        <input id="ev-code" required inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123 456" class="field field-code w-full" />
-        <button id="ev-submit" class="btn-primary w-full">Verificar correo</button>
-        <button type="button" id="ev-resend" class="btn-secondary w-full">Reenviar código</button>
-        <p class="text-center text-xs text-texto-3">¿No lo ves? Revisa la carpeta de spam o promociones.</p>
-        <button type="button" id="ev-cancel" class="btn-link">Cancelar y volver</button>
-      </form>
+        <a href="/" class="relative text-xl"><Logo size={40} /></a>
 
-      <!-- Segundo paso: código del Authenticator (y QR si aún no lo configuró) -->
-      <form id="mfa-form" class="auth-card hidden">
-        <div>
-          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/15 text-2xl">🔐</span>
-          <h1 class="mt-4 text-2xl font-bold">Verificación</h1>
-          <p id="mfa-sub" class="mt-1 text-sm text-texto-2">Escribe el código de 6 dígitos de tu app Authenticator.</p>
-        </div>
-        <div id="mfa-setup" class="hidden space-y-4">
-          <ol class="list-decimal space-y-1 pl-5 text-sm text-texto-2 marker:text-brand-cian">
-            <li>Abre Microsoft Authenticator (o Google Authenticator).</li>
-            <li>Toca <b class="text-texto">+</b> → <b class="text-texto">Otra cuenta</b> y escanea este código.</li>
-            <li>Escribe abajo el código de 6 dígitos que aparece.</li>
-          </ol>
-          <div class="mx-auto w-fit rounded-2xl bg-white p-3">
-            <img id="mfa-qr" alt="Código QR para el Authenticator" class="h-44 w-44" />
-          </div>
-          <details class="text-xs text-texto-2">
-            <summary class="cursor-pointer hover:text-texto">¿No puedes escanear? Escribe la clave a mano</summary>
-            <div class="mt-2 flex items-center gap-2">
-              <code id="mfa-secret" class="flex-1 rounded-lg bg-superficie-2 p-2 font-mono break-all text-brand-cian ring-1 ring-borde"></code>
-              <button type="button" id="mfa-secret-copy" class="btn-secondary px-3 py-2 text-xs">Copiar</button>
+        <div class="relative max-w-md">
+          <h2 class="text-4xl leading-tight font-extrabold tracking-tight">
+            Tus gastos se registran <span class="text-cashly">solos</span>.
+          </h2>
+          <p class="mt-4 text-white/70">
+            Paga con Apple Pay y mira al instante en qué se va tu plata, cuánto llevas y cuánto te queda del mes.
+          </p>
+
+          <!-- Tarjetas de ejemplo -->
+          <div class="mt-10 space-y-3">
+            <div class="flex items-center gap-3 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-cashly text-lg">⚡</span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold">Gasto registrado</p>
+                <p class="text-xs text-white/60">Rappi · Visa 4242 · hace un momento</p>
+              </div>
+              <p class="font-bold">$ 25.000</p>
             </div>
-          </details>
+            <div class="ml-10 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur">
+              <div class="flex items-center justify-between text-sm">
+                <span class="font-semibold">🎯 Meta de comida</span>
+                <span class="text-white/70">69%</span>
+              </div>
+              <div class="mt-2 h-2 rounded-full bg-white/15"><div class="h-2 w-[69%] rounded-full bg-cashly"></div></div>
+              <p class="mt-2 text-xs text-white/60">Puedes gastar $ 8.500 por día</p>
+            </div>
+          </div>
         </div>
-        <input id="mfa-code" required inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123 456" class="field field-code w-full" />
-        <button class="btn-primary w-full">Verificar</button>
-        <button type="button" id="mfa-cancel" class="btn-link">Cancelar y volver</button>
-      </form>
+
+        <p class="relative text-xs text-white/50">🔐 Protegido con verificación en dos pasos y llave de recuperación.</p>
+      </aside>
+
+      <!-- Formularios -->
+      <div class="flex items-center justify-center px-5 py-10 sm:px-10">
+        <div class="w-full max-w-sm">
+          <a href="/" class="mb-10 inline-block text-xl lg:hidden"><Logo size={36} /></a>
+
+          <form id="auth-form" class="space-y-5">
+            <div>
+              <h1 class="text-3xl font-bold tracking-tight">Hola de nuevo 👋</h1>
+              <p id="auth-sub" class="mt-2 text-texto-2">Inicia sesión para ver tus gastos</p>
+            </div>
+            <div>
+              <label for="a-email" class="field-label">Correo</label>
+              <input id="a-email" type="email" required placeholder="correo@ejemplo.com" class="field w-full" />
+            </div>
+            <div id="a-rk-field" class="hidden">
+              <label for="a-rk" class="field-label">Llave de recuperación</label>
+              <input id="a-rk" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" class="field w-full font-mono text-sm" />
+            </div>
+            <div>
+              <label for="a-pass" class="field-label">Contraseña</label>
+              <div class="relative">
+                <input id="a-pass" type="password" required minlength="10" placeholder="Contraseña (mínimo 10 caracteres)" class="field w-full pr-12" />
+                <button type="button" id="a-pass-toggle" class="absolute inset-y-0 right-0 px-3.5 text-texto-3 transition hover:text-texto" title="Mostrar contraseña">👁</button>
+              </div>
+            </div>
+            <button id="a-submit" class="btn-primary w-full py-3">Entrar</button>
+            <div class="space-y-3 border-t border-borde pt-5 text-center">
+              <button type="button" id="a-toggle" class="btn-link font-semibold text-brand hover:text-[#3D5EF0]">¿No tienes cuenta? Crear una</button>
+              <button type="button" id="a-forgot" class="btn-link text-xs">¿Olvidaste la contraseña o perdiste el celular?</button>
+            </div>
+          </form>
+
+          <!-- Verificación del correo: código de 6 dígitos enviado al registrarse -->
+          <form id="email-form" class="hidden space-y-5">
+            <div>
+              <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-2xl">📧</span>
+              <h1 class="mt-5 text-3xl font-bold tracking-tight">Verifica tu correo</h1>
+              <p class="mt-2 text-texto-2">Te enviamos un código de 6 dígitos a <b id="ev-email" class="break-all text-texto"></b>. Vence en 10 minutos.</p>
+            </div>
+            <p id="ev-warn" class="hidden rounded-xl bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-amber-200"></p>
+            <input id="ev-code" required inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123 456" class="field field-code w-full py-3.5" />
+            <button id="ev-submit" class="btn-primary w-full py-3">Verificar correo</button>
+            <button type="button" id="ev-resend" class="btn-secondary w-full">Reenviar código</button>
+            <p class="text-center text-xs text-texto-3">¿No lo ves? Revisa la carpeta de spam o promociones.</p>
+            <button type="button" id="ev-cancel" class="btn-link">← Cancelar y volver</button>
+          </form>
+
+          <!-- Segundo paso: código del Authenticator (y QR si aún no lo configuró) -->
+          <form id="mfa-form" class="hidden space-y-5">
+            <div>
+              <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-2xl">🔐</span>
+              <h1 class="mt-5 text-3xl font-bold tracking-tight">Verificación</h1>
+              <p id="mfa-sub" class="mt-2 text-texto-2">Escribe el código de 6 dígitos de tu app Authenticator.</p>
+            </div>
+            <div id="mfa-setup" class="hidden space-y-4">
+              <ol class="list-decimal space-y-1 pl-5 text-sm text-texto-2 marker:font-semibold marker:text-brand">
+                <li>Abre Microsoft Authenticator (o Google Authenticator).</li>
+                <li>Toca <b class="text-texto">+</b> → <b class="text-texto">Otra cuenta</b> y escanea este código.</li>
+                <li>Escribe abajo el código de 6 dígitos que aparece.</li>
+              </ol>
+              <div class="mx-auto w-fit rounded-2xl bg-white p-3 shadow-sm ring-1 ring-borde">
+                <img id="mfa-qr" alt="Código QR para el Authenticator" class="h-44 w-44" />
+              </div>
+              <details class="text-xs text-texto-2">
+                <summary class="cursor-pointer hover:text-texto">¿No puedes escanear? Escribe la clave a mano</summary>
+                <div class="mt-2 flex items-center gap-2">
+                  <code id="mfa-secret" class="flex-1 rounded-lg bg-superficie-2 p-2 font-mono break-all text-brand ring-1 ring-borde"></code>
+                  <button type="button" id="mfa-secret-copy" class="btn-secondary px-3 py-2 text-xs">Copiar</button>
+                </div>
+              </details>
+            </div>
+            <input id="mfa-code" required inputmode="numeric" autocomplete="one-time-code" maxlength="9" placeholder="123 456" class="field field-code w-full py-3.5" />
+            <button class="btn-primary w-full py-3">Verificar</button>
+            <button type="button" id="mfa-cancel" class="btn-link">← Cancelar y volver</button>
+          </form>
+        </div>
+      </div>
     </main>
 
     <!-- ============ APP ============ -->
     <div id="app" class="hidden">
-      <header class="sticky top-0 z-10 border-b border-borde/70 bg-fondo/80 backdrop-blur">
+      <header class="sticky top-0 z-10 border-b border-borde bg-superficie/85 backdrop-blur">
         <div class="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <a href="/" class="text-lg"><Logo size={30} /></a>
           <button id="logout" class="btn-secondary px-3 py-1.5">Salir</button>
@@ -94,12 +152,12 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       </header>
 
       <main class="mx-auto max-w-5xl space-y-6 p-4 pb-12">
-        <nav class="flex gap-1 rounded-2xl bg-superficie p-1 text-sm font-semibold ring-1 ring-borde">
-          <button data-tab="resumen" class="flex-1 rounded-xl px-3 py-2.5 transition">📊 Resumen</button>
-          <button data-tab="reportes" class="flex-1 rounded-xl px-3 py-2.5 transition">📅 Reportes</button>
-          <button data-tab="metas" class="flex-1 rounded-xl px-3 py-2.5 transition">🎯 Metas</button>
+        <nav class="flex gap-1 rounded-2xl bg-[#E9EBF2] p-1 text-sm font-semibold">
+          <button data-tab="resumen" class="flex-1 rounded-xl px-3 py-2 transition">📊 Resumen</button>
+          <button data-tab="reportes" class="flex-1 rounded-xl px-3 py-2 transition">📅 Reportes</button>
+          <button data-tab="metas" class="flex-1 rounded-xl px-3 py-2 transition">🎯 Metas</button>
         </nav>
-        <div id="demo-note" class="hidden rounded-2xl bg-alerta/10 p-4 text-sm text-alerta ring-1 ring-alerta/30">
+        <div id="demo-note" class="hidden rounded-2xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
           ⚠️ Mostrando <b>datos de ejemplo</b>: la API aún no tiene estos endpoints.
           <button id="demo-retry" class="font-semibold underline">Reintentar con la API real</button>
         </div>
@@ -107,9 +165,11 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         <!-- ============ RESUMEN ============ -->
         <div id="tab-resumen" class="space-y-6">
           <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <div class="rounded-2xl bg-cashly p-5 text-white shadow-lg shadow-brand/25">
-              <p class="text-xs font-medium tracking-wide uppercase opacity-80">Total gastado</p>
-              <p id="k-total" class="kpi-value">–</p>
+            <!-- Tarjeta principal: mismo degradado oscuro del ícono de la app -->
+            <div class="relative overflow-hidden rounded-2xl bg-cashly-fondo p-5 text-white shadow-lg shadow-[#16204A]/20">
+              <div class="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-brand-cian/30 blur-2xl"></div>
+              <p class="relative text-xs font-medium tracking-wide text-white/70 uppercase">Total gastado</p>
+              <p id="k-total" class="kpi-value relative">–</p>
             </div>
             <div class="panel">
               <p class="kpi-label">Movimientos</p>
@@ -129,19 +189,19 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           <div class="grid gap-6 lg:grid-cols-3">
             <section class="panel lg:col-span-1">
               <h2 class="panel-title">Por categoría</h2>
-              <div id="cats" class="space-y-3"></div>
+              <div id="cats" class="space-y-4"></div>
             </section>
 
             <!-- Simulador del Atajo -->
-            <section class="rounded-2xl bg-cashly-fondo p-5 ring-1 ring-borde lg:col-span-2">
+            <section class="rounded-2xl bg-cashly-fondo p-5 text-white shadow-lg shadow-[#16204A]/20 lg:col-span-2">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 class="font-semibold">📱 Simulador del Atajo de iPhone</h2>
-                  <p class="text-xs text-texto-2">Hace lo mismo que hará el Atajo al pagar con Apple Pay.</p>
+                  <p class="text-xs text-white/60">Hace lo mismo que hará el Atajo al pagar con Apple Pay.</p>
                 </div>
-                <button id="sim" class="btn-primary px-4 py-2 text-sm">⚡ Simular pago con Apple Pay</button>
+                <button id="sim" class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[#0E1525] transition hover:bg-white/90">⚡ Simular pago</button>
               </div>
-              <pre id="sim-log" class="mt-4 max-h-48 overflow-auto rounded-xl bg-fondo/70 p-4 text-xs leading-relaxed text-brand-cian">Pulsa el botón para enviar un pago de prueba a /v1/ingest…</pre>
+              <pre id="sim-log" class="mt-4 max-h-48 overflow-auto rounded-xl bg-black/30 p-4 text-xs leading-relaxed text-brand-cian">Pulsa el botón para enviar un pago de prueba a /v1/ingest…</pre>
             </section>
           </div>
 
@@ -161,7 +221,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
             </form>
           </section>
 
-          <section class="overflow-hidden rounded-2xl bg-superficie ring-1 ring-borde">
+          <section class="overflow-hidden rounded-2xl bg-superficie shadow-[0_1px_3px_rgb(14_21_37/0.05)] ring-1 ring-borde">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borde p-5">
               <h2 class="font-semibold">Transacciones</h2>
               <div class="flex gap-2">
@@ -197,7 +257,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
             </section>
             <section class="panel">
               <h2 class="panel-title">Por categoría</h2>
-              <div id="r-cats" class="space-y-3"></div>
+              <div id="r-cats" class="space-y-4"></div>
               <h2 class="panel-title mt-8">Top comercios</h2>
               <ol id="r-merch" class="space-y-2.5 text-sm"></ol>
             </section>
@@ -224,12 +284,12 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
     </div>
 
     <!-- Llave de recuperación -->
-    <div id="recovery" class="fixed inset-0 z-20 hidden items-center justify-center bg-fondo/80 p-4 backdrop-blur-sm">
+    <div id="recovery" class="fixed inset-0 z-20 hidden items-center justify-center bg-[#0E1525]/45 p-4 backdrop-blur-sm">
       <div class="animate-aparecer w-full max-w-md space-y-4 rounded-3xl bg-superficie p-7 shadow-2xl ring-1 ring-borde">
-        <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-alerta/15 text-2xl">🔑</span>
+        <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-2xl">🔑</span>
         <h2 class="text-lg font-bold">Guarda tu llave de recuperación</h2>
         <p class="text-sm text-texto-2">Es la única forma de recuperar tus datos si olvidas la contraseña. No se vuelve a mostrar.</p>
-        <code id="rk" class="block rounded-xl bg-superficie-2 p-4 font-mono text-xs break-all text-brand-cian ring-1 ring-borde"></code>
+        <code id="rk" class="block rounded-xl bg-superficie-2 p-4 font-mono text-xs break-all text-brand ring-1 ring-borde"></code>
         <div class="flex gap-2">
           <button id="rk-copy" class="btn-secondary flex-1">Copiar</button>
           <button id="rk-ok" class="btn-primary flex-1 text-sm">Ya la guardé</button>
@@ -259,7 +319,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
     <div class="pointer-events-none fixed right-2 bottom-1 z-10 text-[10px] text-texto-3 select-none">v{VERSION}</div>
 
     <!-- Notificación -->
-    <div id="toast" class="fixed inset-x-4 top-4 z-30 hidden cursor-pointer items-center gap-3 rounded-2xl bg-superficie/95 p-3 pr-4 shadow-2xl ring-1 ring-borde backdrop-blur sm:inset-x-auto sm:right-4 sm:max-w-sm"></div>
+    <div id="toast" class="fixed inset-x-4 top-4 z-30 hidden cursor-pointer items-center gap-3 rounded-2xl bg-superficie p-3 pr-4 shadow-xl ring-1 ring-borde sm:inset-x-auto sm:right-4 sm:max-w-sm"></div>
 
     <script>
       import { API_URL } from '../config';
@@ -279,8 +339,8 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       const catColor = (c) => CAT_COLOR[c] || 'bg-brand';
       const STATUS = { approved: 'Aprobada', pending: 'Pendiente', declined: 'Declinada', refunded: 'Reembolsada' };
       const STATUS_CLS = {
-        approved: 'bg-exito/15 text-exito', pending: 'bg-alerta/15 text-alerta',
-        declined: 'bg-error/15 text-error', refunded: 'bg-brand-cian/15 text-brand-cian',
+        approved: 'bg-emerald-50 text-emerald-700', pending: 'bg-amber-50 text-amber-700',
+        declined: 'bg-red-50 text-red-600', refunded: 'bg-sky-50 text-sky-700',
       };
       const API = API_URL.replace(/\/+$/, ''); // se configura en src/config.ts
       store.del('apiUrl'); // versiones anteriores guardaban la URL en el navegador
@@ -294,10 +354,10 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       // ---------- Notificaciones ----------
       // toast(mensaje, tipo): tipo = 'info' | 'success' | 'warning' | 'error'
       const TOAST = {
-        info: { icon: 'i', cls: 'bg-brand/15 text-brand' },
-        success: { icon: '✓', cls: 'bg-exito/15 text-exito' },
-        warning: { icon: '!', cls: 'bg-alerta/15 text-alerta' },
-        error: { icon: '✕', cls: 'bg-error/15 text-error' },
+        info: { icon: 'i', cls: 'bg-brand/10 text-brand' },
+        success: { icon: '✓', cls: 'bg-emerald-50 text-emerald-600' },
+        warning: { icon: '!', cls: 'bg-amber-50 text-amber-600' },
+        error: { icon: '✕', cls: 'bg-red-50 text-red-600' },
       };
       let toastT;
       function hideToast() { $('#toast').classList.add('hidden'); $('#toast').classList.remove('flex'); }
@@ -317,7 +377,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         $('#dlg-title').textContent = title;
         $('#dlg-msg').textContent = message;
         $('#dlg-icon').textContent = danger ? '🗑' : input ? '✎' : '?';
-        $('#dlg-icon').className = `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg ${danger ? 'bg-error/15' : 'bg-brand/15'}`;
+        $('#dlg-icon').className = `flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg ${danger ? 'bg-red-50' : 'bg-brand/10'}`;
         $('#dlg-ok').textContent = ok;
         $('#dlg-ok').className = `${danger ? 'btn-danger' : 'btn-primary'} order-2 flex-1 text-sm`;
         field.classList.toggle('hidden', !input); field.required = !!input;
@@ -385,30 +445,37 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       // ---------- Pantallas ----------
       function showAuth() {
         $('#app').classList.add('hidden');
-        $('#auth').classList.remove('hidden'); $('#auth').classList.add('flex');
+        $('#auth').classList.remove('hidden'); $('#auth').classList.add('grid');
         showEmailVerify(null);
         showMfa(null);
       }
       function showApp() {
-        $('#auth').classList.add('hidden'); $('#auth').classList.remove('flex');
+        $('#auth').classList.add('hidden'); $('#auth').classList.remove('grid');
         $('#app').classList.remove('hidden');
         showTab('resumen');
         load();
       }
 
-      const SUB = { login: 'Inicia sesión para ver tus gastos', register: 'Crea tu cuenta', recover: 'Recupera tu cuenta con la llave de recuperación' };
+      const TITLE = { login: 'Hola de nuevo 👋', register: 'Crea tu cuenta', recover: 'Recupera tu cuenta' };
+      const SUB = { login: 'Inicia sesión para ver tus gastos', register: 'Empieza a registrar tus gastos en segundos', recover: 'Recupera tu cuenta con la llave de recuperación' };
       function setMode(m) {
         mode = m;
         const reg = m === 'register', rec = m === 'recover';
+        $('#auth-form h1').textContent = TITLE[m];
         $('#auth-sub').textContent = SUB[m];
         $('#a-submit').textContent = reg ? 'Crear cuenta' : rec ? 'Recuperar cuenta' : 'Entrar';
         $('#a-toggle').textContent = m === 'login' ? '¿No tienes cuenta? Crear una' : '¿Ya tienes cuenta? Inicia sesión';
         $('#a-forgot').classList.toggle('hidden', m !== 'login');
-        $('#a-rk').classList.toggle('hidden', !rec); $('#a-rk').required = rec;
+        $('#a-rk-field').classList.toggle('hidden', !rec); $('#a-rk').required = rec;
         $('#a-pass').placeholder = rec ? 'Nueva contraseña (mínimo 10 caracteres)' : 'Contraseña (mínimo 10 caracteres)';
       }
       $('#a-toggle').onclick = () => setMode(mode === 'login' ? 'register' : 'login');
       $('#a-forgot').onclick = () => setMode('recover');
+      $('#a-pass-toggle').onclick = () => {
+        const p = $('#a-pass'), show = p.type === 'password';
+        p.type = show ? 'text' : 'password';
+        $('#a-pass-toggle').title = show ? 'Ocultar contraseña' : 'Mostrar contraseña';
+      };
 
       // ---------- MFA (Microsoft / Google Authenticator) ----------
       // El mfaToken vive solo en memoria: dura 10 min, es de un solo uso y no sirve como sesión.
@@ -575,7 +642,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       function categoryBars(totals, emptyText) {
         const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
         const max = entries[0]?.[1] || 1;
-        return entries.map(([c, v]) => barRow(catLabel(c), money(v), Math.max(4, (v / max) * 100), catColor(c))).join('')
+        return entries.map(([c, v]) => barRow(catLabel(c), money(v), Math.max(4, (v / max) * 100), 'bg-brand')).join('')
           || `<p class="empty">${emptyText}</p>`;
       }
 
@@ -608,7 +675,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           const src = t.source === 'ios-shortcut' ? '📱 Atajo iOS' : t.source === 'manual' ? '✍️ Manual' : esc(t.source);
           const when = new Date(t.occurred_at).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
           return `
-          <li class="flex flex-wrap items-center gap-3 px-5 py-3.5 transition hover:bg-superficie-2/60" data-id="${t.id}">
+          <li class="flex flex-wrap items-center gap-3 px-5 py-3.5 transition hover:bg-superficie-2" data-id="${t.id}">
             <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-superficie-2 text-lg ring-1 ring-borde">${t.type === 'cash' ? '💵' : '💳'}</div>
             <div class="min-w-0 flex-1">
               <p class="truncate font-semibold">${esc(t.merchant)}</p>
@@ -623,7 +690,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
             <select data-act="status" class="rounded-full border-0 px-2.5 py-1 text-xs font-semibold outline-none ${STATUS_CLS[t.status] || ''}">
               ${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${t.status === k ? 'selected' : ''}>${v}</option>`).join('')}
             </select>
-            <button data-act="delete" class="rounded-lg p-1.5 text-texto-3 transition hover:bg-error/10 hover:text-error" title="Borrar">✕</button>
+            <button data-act="delete" class="rounded-lg p-1.5 text-texto-3 transition hover:bg-red-50 hover:text-error" title="Borrar">✕</button>
           </li>`;
         }).join('');
       }
@@ -711,7 +778,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         ['resumen', 'reportes', 'metas'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
         document.querySelectorAll('[data-tab]').forEach((b) => {
           const on = b.dataset.tab === t;
-          b.classList.toggle('bg-cashly', on); b.classList.toggle('text-white', on); b.classList.toggle('shadow-lg', on);
+          b.classList.toggle('bg-superficie', on); b.classList.toggle('text-brand', on); b.classList.toggle('shadow-sm', on);
           b.classList.toggle('text-texto-2', !on); b.classList.toggle('hover:text-texto', !on);
         });
         if (t === 'reportes') loadReports();
@@ -792,15 +859,15 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         // Barras del día: el de mayor gasto va con el degradado de marca.
         $('#r-daily-chart').innerHTML = `
           <div class="relative flex h-48 items-end gap-0.5 border-b border-borde">
-            <div class="absolute inset-x-0 border-t border-dashed border-alerta/70" style="bottom:${(s.avg_per_day / max) * 100}%"><span class="absolute -top-4 right-0 text-[10px] text-alerta">promedio ${money(s.avg_per_day)}</span></div>
-            ${d.days.map((x) => `<div class="flex-1 rounded-t-md transition hover:opacity-80 ${x.total === s.max_day.total ? 'bg-cashly' : 'bg-brand/60'}" style="height:${x.total ? Math.max(2, (x.total / max) * 100) : 0}%" title="${fmtDay(x.date)}: ${money(x.total)}"></div>`).join('')}
+            <div class="absolute inset-x-0 border-t border-dashed border-amber-400" style="bottom:${(s.avg_per_day / max) * 100}%"><span class="absolute -top-4 right-0 rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">promedio ${money(s.avg_per_day)}</span></div>
+            ${d.days.map((x) => `<div class="flex-1 rounded-t-md transition hover:opacity-80 ${x.total === s.max_day.total ? 'bg-brand' : 'bg-brand/30'}" style="height:${x.total ? Math.max(2, (x.total / max) * 100) : 0}%" title="${fmtDay(x.date)}: ${money(x.total)}"></div>`).join('')}
           </div>
           <div class="mt-1.5 flex gap-0.5 text-[9px] text-texto-3">${d.days.map((x) => `<span class="flex-1 text-center">${+x.date.slice(8)}</span>`).join('')}</div>`;
 
         const wmax = Math.max(...w.weeks.map((x) => x.total), 1);
         $('#r-weekly').innerHTML = w.weeks.slice().reverse().map((x) => {
-          const c = x.change_pct, arrow = c == null ? '' : `<span class="ml-1 text-xs font-semibold ${c > 0 ? 'text-error' : 'text-exito'}">${c > 0 ? '▲' : '▼'} ${Math.abs(c)}%</span>`;
-          return `<div>${barRow(`${fmtShort(x.start)} – ${fmtShort(x.end)}`, money(x.total) + arrow, Math.max(2, (x.total / wmax) * 100), 'bg-brand-cian')}
+          const c = x.change_pct, arrow = c == null ? '' : `<span class="ml-1 text-xs font-semibold ${c > 0 ? 'text-red-600' : 'text-emerald-600'}">${c > 0 ? '▲' : '▼'} ${Math.abs(c)}%</span>`;
+          return `<div>${barRow(`${fmtShort(x.start)} – ${fmtShort(x.end)}`, money(x.total) + arrow, Math.max(2, (x.total / wmax) * 100), 'bg-brand/70')}
             <p class="mt-1 text-xs text-texto-3">${x.count} movimientos · ${money(x.avg_per_day)} por día</p></div>`;
         }).join('');
 
@@ -809,7 +876,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         $('#r-cats').innerHTML = categoryBars(cats, 'Sin datos.');
         $('#r-merch').innerHTML = s.top_merchants.map((m, i) => `
           <li class="flex items-center justify-between gap-2">
-            <span class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-lg bg-brand/15 text-xs font-bold text-brand">${i + 1}</span>${esc(m.merchant)} <span class="text-xs text-texto-3">(${m.count})</span></span>
+            <span class="flex items-center gap-3"><span class="flex h-6 w-6 items-center justify-center rounded-lg bg-brand/10 text-xs font-bold text-brand">${i + 1}</span>${esc(m.merchant)} <span class="text-xs text-texto-3">(${m.count})</span></span>
             <span class="font-semibold tabular-nums">${money(m.total)}</span>
           </li>`).join('') || '<li class="empty">Sin datos.</li>';
 
@@ -828,19 +895,19 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       function renderGoals(p) {
         const mes = new Date(p.month + '-15').toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
         $('#g-title').textContent = `Metas de ${mes} · faltan ${p.days_left} días`;
-        const COL = { ok: 'bg-exito', warning: 'bg-alerta', exceeded: 'bg-error' };
+        const COL = { ok: 'bg-brand', warning: 'bg-amber-400', exceeded: 'bg-error' };
         $('#g-list').innerHTML = p.goals.map((g) => `
           <div class="panel" data-id="${g.id}">
             <div class="flex items-center justify-between">
               <h3 class="flex items-center gap-2 font-semibold"><span class="h-2.5 w-2.5 rounded-full ${g.category ? catColor(g.category) : 'bg-brand'}"></span>${g.category ? esc(g.category.charAt(0).toUpperCase() + g.category.slice(1)) : 'Total del mes'}</h3>
               <div class="flex gap-1 text-xs">
                 <button data-g="edit" class="rounded-lg px-2 py-1 text-texto-2 transition hover:bg-superficie-2 hover:text-texto">Editar</button>
-                <button data-g="del" class="rounded-lg px-2 py-1 text-error transition hover:bg-error/10">Borrar</button>
+                <button data-g="del" class="rounded-lg px-2 py-1 text-error transition hover:bg-red-50">Borrar</button>
               </div>
             </div>
             <p class="mt-3 text-3xl font-bold tabular-nums ${g.remaining < 0 ? 'text-error' : ''}">${money(Math.abs(g.remaining))}</p>
             <p class="text-xs text-texto-2">${g.remaining >= 0 ? 'te quedan' : 'te pasaste'} · meta ${money(g.limit)}</p>
-            <div class="mt-4 h-3 overflow-hidden rounded-full bg-superficie-2"><div class="h-3 rounded-full ${COL[g.status]}" style="width:${Math.min(100, g.percent)}%"></div></div>
+            <div class="mt-4 h-3 overflow-hidden rounded-full bg-[#EEF0F6]"><div class="h-3 rounded-full ${COL[g.status]}" style="width:${Math.min(100, g.percent)}%"></div></div>
             <p class="mt-1.5 text-xs text-texto-2">${g.percent}% usado · llevas ${money(g.spent)}</p>
             <ul class="mt-4 space-y-1 text-sm text-texto-2">
               <li>📅 ${g.remaining > 0 ? `Puedes gastar <b class="text-texto">${money(g.daily_allowance)}</b> por día` : 'Ya no queda presupuesto este mes'}</li>

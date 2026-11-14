@@ -46,27 +46,43 @@
 }
 
 /*
+ * Tema claro de la app (/app), con los colores "claros" de la paleta.
+ * Reasigna las variables, así que bg-superficie, text-texto-2, ring-borde… se ven claros
+ * dentro de .tema-claro sin cambiar las clases. La landing sigue en modo oscuro.
+ */
+.tema-claro {
+  --fondo: var(--claro-fondo);
+  --superficie: var(--claro-superficie);
+  --superficie-2: #F7F8FB;
+  --borde: #E4E7EF;
+  --texto: var(--claro-texto);
+  --texto-2: var(--claro-texto-2);
+  --texto-3: #9AA1B3;
+  color-scheme: light;
+}
+
+/*
  * Piezas de la interfaz de la app (/app).
  * Así el HTML usa nombres cortos (panel, field, btn-primary…) en vez de repetir utilidades.
  */
 @layer components {
   /* ---------- Contenedores ---------- */
   .panel {
-    @apply rounded-2xl bg-superficie p-5 ring-1 ring-borde;
+    @apply rounded-2xl bg-superficie p-5 shadow-[0_1px_3px_rgb(14_21_37/0.05)] ring-1 ring-borde;
   }
   .panel-title {
     @apply mb-4 font-semibold;
   }
-  .auth-card {
-    @apply w-full max-w-sm space-y-4 rounded-3xl bg-superficie p-7 shadow-2xl shadow-brand/10 ring-1 ring-borde;
-  }
 
   /* ---------- Campos ---------- */
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-texto;
+  }
   .field {
-    @apply rounded-xl bg-superficie-2 px-3.5 py-2.5 text-texto ring-1 ring-borde outline-none transition placeholder:text-texto-3 focus:ring-2 focus:ring-brand;
+    @apply rounded-xl bg-superficie-2 px-3.5 py-2.5 text-texto ring-1 ring-borde outline-none transition placeholder:text-texto-3 focus:bg-superficie focus:ring-2 focus:ring-brand;
   }
   .field-sm {
-    @apply rounded-lg bg-superficie-2 px-2.5 py-1.5 text-xs text-texto ring-1 ring-borde outline-none transition focus:ring-brand;
+    @apply rounded-lg bg-superficie px-2.5 py-1.5 text-xs text-texto ring-1 ring-borde outline-none transition focus:ring-brand;
   }
   .field-code {
     @apply text-center font-mono text-2xl tracking-[0.3em];
@@ -74,10 +90,10 @@
 
   /* ---------- Botones ---------- */
   .btn-primary {
-    @apply rounded-xl bg-cashly px-4 py-2.5 font-semibold text-white shadow-lg shadow-brand/25 transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply rounded-xl bg-brand px-4 py-2.5 font-semibold text-white shadow-md shadow-brand/25 transition hover:bg-[#3D5EF0] disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-secondary {
-    @apply rounded-xl bg-superficie-2 px-4 py-2.5 text-sm font-medium text-texto ring-1 ring-borde transition hover:ring-brand/60 disabled:cursor-not-allowed disabled:text-texto-3 disabled:hover:ring-borde;
+    @apply rounded-xl bg-superficie px-4 py-2.5 text-sm font-medium text-texto ring-1 ring-borde transition hover:bg-superficie-2 disabled:cursor-not-allowed disabled:text-texto-3 disabled:hover:bg-superficie;
   }
   .btn-danger {
     @apply rounded-xl bg-error px-4 py-2.5 font-semibold text-white transition hover:opacity-90;
@@ -94,11 +110,19 @@
     @apply mt-1 text-2xl font-bold tabular-nums;
   }
   .bar-track {
-    @apply h-2 overflow-hidden rounded-full bg-superficie-2;
+    @apply h-2 overflow-hidden rounded-full bg-[#EEF0F6];
   }
   .empty {
     @apply text-sm text-texto-3;
   }
+}
+
+/* Cuadrícula sutil del logo, para el panel de marca del login */
+.fondo-cuadricula {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 /* Aparición de notificaciones y diálogos */
@@ -109,6 +133,6 @@
 .animate-aparecer { animation: aparecer 0.2s ease-out; }
 
 dialog.cashly-dialog::backdrop {
-  background: rgb(10 15 30 / 0.75);
+  background: rgb(14 21 37 / 0.45);
   backdrop-filter: blur(4px);
 }
