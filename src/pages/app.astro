@@ -156,6 +156,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           <button data-tab="resumen" class="flex-1 rounded-xl px-3 py-2 transition">📊 Resumen</button>
           <button data-tab="reportes" class="flex-1 rounded-xl px-3 py-2 transition">📅 Reportes</button>
           <button data-tab="metas" class="flex-1 rounded-xl px-3 py-2 transition">🎯 Metas</button>
+          <button data-tab="perfil" class="flex-1 rounded-xl px-3 py-2 transition">👤 Perfil</button>
         </nav>
         <div id="demo-note" class="hidden rounded-2xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
           ⚠️ Mostrando <b>datos de ejemplo</b>: la API aún no tiene estos endpoints.
@@ -192,34 +193,22 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
               <div id="cats" class="space-y-4"></div>
             </section>
 
-            <!-- Simulador del Atajo -->
-            <section class="rounded-2xl bg-cashly-fondo p-5 text-white shadow-lg shadow-[#16204A]/20 lg:col-span-2">
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 class="font-semibold">📱 Simulador del Atajo de iPhone</h2>
-                  <p class="text-xs text-white/60">Hace lo mismo que hará el Atajo al pagar con Apple Pay.</p>
-                </div>
-                <button id="sim" class="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-[#0E1525] transition hover:bg-white/90">⚡ Simular pago</button>
-              </div>
-              <pre id="sim-log" class="mt-4 max-h-48 overflow-auto rounded-xl bg-black/30 p-4 text-xs leading-relaxed text-brand-cian">Pulsa el botón para enviar un pago de prueba a /v1/ingest…</pre>
+            <section class="panel lg:col-span-2">
+              <h2 class="panel-title">Registrar gasto manual</h2>
+              <form id="tx-form" class="grid gap-3 sm:grid-cols-6">
+                <select id="f-type" class="field sm:col-span-2">
+                  <option value="cash">💵 Efectivo</option>
+                  <option value="card">💳 Tarjeta</option>
+                </select>
+                <input id="f-merchant" required placeholder="Comercio" class="field sm:col-span-4" />
+                <input id="f-amount" required placeholder="Monto (ej. 25.000)" class="field sm:col-span-2" />
+                <select id="f-category" class="field sm:col-span-2"></select>
+                <input id="f-card" placeholder="Tarjeta (ej. Visa 4242)" class="field hidden sm:col-span-2" />
+                <input id="f-desc" placeholder="Descripción (opcional)" class="field sm:col-span-4" />
+                <button class="btn-primary sm:col-span-2">Agregar</button>
+              </form>
             </section>
           </div>
-
-          <section class="panel">
-            <h2 class="panel-title">Registrar gasto manual</h2>
-            <form id="tx-form" class="grid gap-3 sm:grid-cols-6">
-              <select id="f-type" class="field sm:col-span-1">
-                <option value="cash">💵 Efectivo</option>
-                <option value="card">💳 Tarjeta</option>
-              </select>
-              <input id="f-merchant" required placeholder="Comercio" class="field sm:col-span-2" />
-              <input id="f-amount" required placeholder="Monto (ej. 25.000)" class="field sm:col-span-1" />
-              <select id="f-category" class="field sm:col-span-2"></select>
-              <input id="f-card" placeholder="Tarjeta (ej. Visa 4242)" class="field hidden sm:col-span-2" />
-              <input id="f-desc" placeholder="Descripción (opcional)" class="field sm:col-span-3" />
-              <button class="btn-primary sm:col-span-1">Agregar</button>
-            </form>
-          </section>
 
           <section class="overflow-hidden rounded-2xl bg-superficie shadow-[0_1px_3px_rgb(14_21_37/0.05)] ring-1 ring-borde">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-borde p-5">
@@ -280,6 +269,99 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           </section>
           <div id="g-list" class="grid gap-4 md:grid-cols-2"></div>
         </div>
+
+        <!-- ============ PERFIL ============ -->
+        <div id="tab-perfil" class="hidden space-y-6">
+          <div class="grid gap-6 lg:grid-cols-2">
+            <!-- Datos de la cuenta -->
+            <section class="panel">
+              <h2 class="panel-title">Mi cuenta</h2>
+              <div class="flex items-center gap-4">
+                <span id="p-avatar" class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cashly-fondo text-xl font-bold text-white uppercase">?</span>
+                <div class="min-w-0">
+                  <p id="p-email" class="truncate font-semibold">—</p>
+                  <p class="text-xs text-texto-3">Correo de la cuenta</p>
+                </div>
+              </div>
+              <dl class="mt-5 divide-y divide-borde text-sm">
+                <div class="flex items-center justify-between gap-3 py-3">
+                  <dt class="text-texto-2">ID de usuario</dt>
+                  <dd class="flex min-w-0 items-center gap-2">
+                    <code id="p-uid" class="truncate font-mono text-xs text-texto">—</code>
+                    <button type="button" id="p-uid-copy" class="btn-link shrink-0 text-xs">Copiar</button>
+                  </dd>
+                </div>
+                <div class="flex items-center justify-between gap-3 py-3">
+                  <dt class="text-texto-2">Correo</dt>
+                  <dd class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">✓ Verificado</dd>
+                </div>
+                <div class="flex items-center justify-between gap-3 py-3">
+                  <dt class="text-texto-2">Verificación en dos pasos</dt>
+                  <dd class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">✓ Activa</dd>
+                </div>
+                <div class="flex items-center justify-between gap-3 py-3">
+                  <dt class="text-texto-2">Llave de recuperación</dt>
+                  <dd class="text-xs text-texto-3">Se mostró al crear la cuenta</dd>
+                </div>
+              </dl>
+              <p class="mt-3 text-xs text-texto-3">🔐 Por seguridad, {APP_NAME} no guarda tu correo en claro: solo una huella cifrada. El correo que ves aquí está guardado únicamente en este navegador.</p>
+            </section>
+
+            <!-- Cambiar contraseña -->
+            <section class="panel">
+              <h2 class="panel-title">Cambiar contraseña</h2>
+              <form id="pw-form" class="space-y-4">
+                <p class="text-sm text-texto-2">Usa la <b class="text-texto">llave de recuperación</b> que te dimos al crear la cuenta.</p>
+                <!-- Solo se muestra si este navegador no tiene guardado el correo de la cuenta -->
+                <div id="pw-email-field" class="hidden">
+                  <label for="pw-email" class="field-label">Correo de la cuenta</label>
+                  <input id="pw-email" type="email" autocomplete="username" placeholder="correo@ejemplo.com" class="field w-full" />
+                </div>
+                <div>
+                  <label for="pw-rk" class="field-label">Llave de recuperación</label>
+                  <input id="pw-rk" required autocomplete="off" spellcheck="false" placeholder="xxxxxxxx-xxxxxxxx-…" class="field w-full font-mono text-sm" />
+                </div>
+                <div>
+                  <label for="pw-new" class="field-label">Contraseña nueva</label>
+                  <input id="pw-new" type="password" required minlength="10" autocomplete="new-password" placeholder="Mínimo 10 caracteres" class="field w-full" />
+                </div>
+                <div>
+                  <label for="pw-confirm" class="field-label">Confirmar contraseña nueva</label>
+                  <input id="pw-confirm" type="password" required minlength="10" autocomplete="new-password" class="field w-full" />
+                </div>
+                <label class="flex items-center gap-2 text-sm text-texto-2">
+                  <input id="pw-show" type="checkbox" class="accent-brand" /> Mostrar contraseñas
+                </label>
+                <button id="pw-submit" class="btn-primary w-full py-3">Cambiar contraseña</button>
+                <p class="rounded-xl bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-amber-200">
+                  Al cambiarla recibirás una <b>llave de recuperación nueva</b> (la actual deja de servir) y tendrás que
+                  <b>volver a escanear el QR</b> en tu app Authenticator. Se cerrará la sesión en todos tus dispositivos; el Atajo del iPhone sigue funcionando.
+                </p>
+              </form>
+            </section>
+          </div>
+
+          <!-- Atajo de iPhone: tokens de ingesta -->
+          <section class="panel">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 class="font-semibold">📱 Atajo de iPhone</h2>
+                <p class="mt-1 text-sm text-texto-2">Cada iPhone usa un token para registrar los pagos de Apple Pay. El token solo puede crear gastos: no puede ver ni borrar nada.</p>
+              </div>
+              <button type="button" id="it-new" class="btn-primary shrink-0 text-sm">+ Nuevo token</button>
+            </div>
+            <ul id="it-list" class="mt-4 divide-y divide-borde"></ul>
+          </section>
+
+          <!-- Sesiones -->
+          <section class="panel flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="font-semibold">Sesiones</h2>
+              <p class="mt-1 text-sm text-texto-2">¿Iniciaste sesión en un equipo que no es tuyo? Ciérrala en todas partes.</p>
+            </div>
+            <button type="button" id="logout-all" class="btn-secondary shrink-0 text-sm text-error">Cerrar sesión en todos los dispositivos</button>
+          </section>
+        </div>
       </main>
     </div>
 
@@ -293,6 +375,20 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         <div class="flex gap-2">
           <button id="rk-copy" class="btn-secondary flex-1">Copiar</button>
           <button id="rk-ok" class="btn-primary flex-1 text-sm">Ya la guardé</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Token del Atajo recién creado (solo se ve una vez) -->
+    <div id="tok-modal" class="fixed inset-0 z-20 hidden items-center justify-center bg-[#0E1525]/45 p-4 backdrop-blur-sm">
+      <div class="animate-aparecer w-full max-w-md space-y-4 rounded-3xl bg-superficie p-7 shadow-2xl ring-1 ring-borde">
+        <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/10 text-2xl">📱</span>
+        <h2 class="text-lg font-bold">Token del Atajo</h2>
+        <p class="text-sm text-texto-2">Pégalo en el Atajo de iPhone, en el encabezado <code class="font-mono text-xs">Authorization: Bearer …</code>. <b class="text-texto">No se vuelve a mostrar.</b></p>
+        <code id="tok-value" class="block rounded-xl bg-superficie-2 p-4 font-mono text-xs break-all text-brand ring-1 ring-borde"></code>
+        <div class="flex gap-2">
+          <button id="tok-copy" class="btn-secondary flex-1">Copiar</button>
+          <button id="tok-ok" class="btn-primary flex-1 text-sm">Listo</button>
         </div>
       </div>
     </div>
@@ -440,7 +536,9 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           return false;
         }
       }
-      function clearSession() { ['at', 'rt', 'it'].forEach(store.del); }
+      // 'it' era el token del simulador del Atajo (ya no existe): se borra si quedó guardado.
+      function clearSession() { ['at', 'rt', 'it', 'email', 'uid'].forEach(store.del); }
+      store.del('it');
 
       // ---------- Pantallas ----------
       function showAuth() {
@@ -500,7 +598,11 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         if (code.length !== 6) return toast('El código debe tener 6 dígitos', 'warning');
         const path = mfa.enrolling ? '/v1/auth/mfa/setup/confirm' : '/v1/auth/login/mfa';
         try {
-          setSession(await call('POST', path, { mfaToken: mfa.token, code }, { auth: false }));
+          const s = await call('POST', path, { mfaToken: mfa.token, code }, { auth: false });
+          setSession(s);
+          // La API no devuelve el correo (no lo guarda): se recuerda el que escribió para mostrarlo en el perfil.
+          if (authEmail) store.set('email', authEmail);
+          if (s.user?.id) store.set('uid', s.user.id);
           $('#a-pass').value = $('#a-rk').value = '';
           showMfa(null); setMode('login'); showApp();
         } catch (err) {
@@ -591,9 +693,11 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       };
       $('#ev-cancel').onclick = () => showEmailVerify(null);
 
+      let authEmail = ''; // correo con el que se está entrando (se guarda al completar el MFA)
       $('#auth-form').onsubmit = async (e) => {
         e.preventDefault();
         const email = $('#a-email').value.trim(), pass = $('#a-pass').value;
+        authEmail = email;
         const body = mode === 'recover' ? { email, recoveryKey: $('#a-rk').value.trim(), newPassword: pass } : { email, password: pass };
         try {
           // Ninguno entrega sesión. Registro → código al correo; login/recover → mfaToken (y QR si toca).
@@ -669,7 +773,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
       }
 
       function renderList(items) {
-        if (!items.length) { $('#list').innerHTML = '<li class="p-10 text-center text-sm text-texto-3">No hay transacciones. Agrega una o simula un pago.</li>'; return; }
+        if (!items.length) { $('#list').innerHTML = '<li class="p-10 text-center text-sm text-texto-3">No hay transacciones. Agrega una arriba o paga con Apple Pay usando el Atajo del iPhone.</li>'; return; }
         $('#list').innerHTML = items.map((t) => {
           const cats = CATS.includes(t.category) || !t.category ? CATS : [...CATS, t.category];
           const src = t.source === 'ios-shortcut' ? '📱 Atajo iOS' : t.source === 'manual' ? '✍️ Manual' : esc(t.source);
@@ -730,40 +834,94 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         } catch (err) { toast(err.message, 'error'); }
       };
 
-      // ---------- Simulador del Atajo de iOS ----------
-      const SIM = [
-        { merchant: 'Rappi', amount: '$25.000,00', card: 'Visa 4242' },
-        { merchant: 'Éxito', amount: '$87.450,00', card: 'Mastercard 1881' },
-        { merchant: 'Uber', amount: '$18.300', card: 'Visa 4242' },
-        { merchant: 'Netflix', amount: '$39.900', card: 'Visa 4242', status: 'declined' },
-        { merchant: 'Starbucks', amount: 'COP 14,500.00', card: 'Amex 0005' },
-        { merchant: 'Droguería Cruz Verde', amount: '$52.000,00', card: 'Mastercard 1881' },
-      ];
-      async function ensureIngestToken(force = false) {
-        if (!force && store.get('it')) return store.get('it');
-        const r = await call('POST', '/v1/ingest-tokens', { label: 'Simulador web' });
-        store.set('it', r.token);
-        return r.token;
+      // ---------- Perfil ----------
+      const fmtDate = (ms) => new Date(ms).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+      function renderProfile() {
+        const email = store.get('email'), uid = store.get('uid');
+        $('#p-email').textContent = email || 'Vuelve a iniciar sesión para ver tu correo';
+        $('#p-email').classList.toggle('text-texto-3', !email);
+        $('#p-avatar').textContent = email ? email[0] : '?';
+        $('#p-uid').textContent = uid || '—';
+        $('#p-uid-copy').classList.toggle('hidden', !uid);
+        // Sin el correo guardado (sesiones viejas) hay que pedirlo para cambiar la contraseña.
+        $('#pw-email-field').classList.toggle('hidden', !!email); $('#pw-email').required = !email;
       }
-      $('#sim').onclick = async () => {
-        const p = { ...SIM[Math.floor(Math.random() * SIM.length)], date: new Date().toISOString() };
-        const log = $('#sim-log');
+      function loadProfile() { renderProfile(); loadIngestTokens(); }
+      $('#p-uid-copy').onclick = () => navigator.clipboard.writeText(store.get('uid') || '').then(() => toast('ID copiado', 'success'));
+
+      // Cambiar contraseña con la llave de recuperación (POST /v1/auth/recover). La API además entrega una llave
+      // nueva, reinicia el Authenticator (QR nuevo) y cierra todas las sesiones: se sigue el mismo flujo del login.
+      $('#pw-show').onchange = () => ['#pw-new', '#pw-confirm'].forEach((s) => ($(s).type = $('#pw-show').checked ? 'text' : 'password'));
+      $('#pw-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const email = store.get('email') || $('#pw-email').value.trim();
+        const recoveryKey = $('#pw-rk').value.trim(), newPassword = $('#pw-new').value;
+        if (!email) return toast('Escribe el correo de tu cuenta', 'warning');
+        if (newPassword !== $('#pw-confirm').value) return toast('Las contraseñas nuevas no coinciden', 'warning');
+        if (!(await ask({
+          title: '¿Cambiar la contraseña?',
+          message: 'Recibirás una llave de recuperación nueva y tendrás que volver a escanear el QR en tu app Authenticator.',
+          ok: 'Cambiar',
+        }))) return;
+        $('#pw-submit').disabled = true;
         try {
-          let tok = await ensureIngestToken();
-          const show = (extra) => (log.textContent =
-            `POST ${API}/v1/ingest\nAuthorization: Bearer ${tok.slice(0, 9)}…\n\n${JSON.stringify(p, null, 2)}\n\n${extra}`);
-          show('Enviando…');
-          let res;
-          try { res = await call('POST', '/v1/ingest', p, { token: tok }); }
-          catch (err) {
-            if (err.status !== 401) throw err;
-            tok = await ensureIngestToken(true); // token revocado: crear otro
-            res = await call('POST', '/v1/ingest', p, { token: tok });
-          }
-          show(`→ 201 ${JSON.stringify(res)}`);
-          toast(`Pago de ${p.merchant} registrado`, 'success');
-          load();
-        } catch (err) { log.textContent = 'Error: ' + err.message; toast(err.message, 'error'); }
+          const r = await call('POST', '/v1/auth/recover', { email, recoveryKey, newPassword }, { auth: false });
+          e.target.reset(); $('#pw-show').onchange();
+          // Las sesiones ya fueron revocadas: se pasa a la pantalla de acceso con la llave nueva y luego el QR.
+          clearSession(); showAuth();
+          authEmail = email; $('#a-email').value = email;
+          pendingAuth = { r, email, password: newPassword, sentAt: null };
+          $('#rk').textContent = r.recoveryKey;
+          $('#recovery').classList.remove('hidden'); $('#recovery').classList.add('flex');
+          toast('Contraseña actualizada. Guarda tu llave nueva y vuelve a vincular el Authenticator.', 'success');
+        } catch (err) {
+          toast(err.status === 401 ? 'La llave de recuperación no es válida para esta cuenta' : err.message, 'error');
+        } finally { $('#pw-submit').disabled = false; }
+      };
+
+      // Tokens del Atajo de iPhone
+      async function loadIngestTokens() {
+        try {
+          const items = await call('GET', '/v1/ingest-tokens');
+          $('#it-list').innerHTML = items.map((t) => `
+            <li class="flex flex-wrap items-center gap-3 py-3" data-id="${esc(t.id)}">
+              <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-superficie-2 text-lg ring-1 ring-borde">📱</span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate font-semibold">${esc(t.label || 'Sin nombre')}</p>
+                <p class="text-xs text-texto-3">Creado ${fmtDate(t.created_at)} · ${t.last_used_at ? 'último uso ' + fmtDate(t.last_used_at) : 'aún sin usar'}</p>
+              </div>
+              <button data-it="revoke" class="rounded-lg px-2 py-1 text-xs text-error transition hover:bg-red-50">Revocar</button>
+            </li>`).join('') || '<li class="empty py-3">Aún no tienes tokens. Crea uno para configurar el Atajo en tu iPhone.</li>';
+        } catch (err) { toast(err.message, 'error'); }
+      }
+      $('#it-new').onclick = async () => {
+        const label = await ask({ title: 'Nuevo token del Atajo', message: 'Ponle un nombre para reconocer el dispositivo.', ok: 'Crear', input: { placeholder: 'Ej. iPhone de Ana' } });
+        if (!label) return;
+        try {
+          const r = await call('POST', '/v1/ingest-tokens', { label: label.slice(0, 60) });
+          $('#tok-value').textContent = r.token;
+          $('#tok-modal').classList.remove('hidden'); $('#tok-modal').classList.add('flex');
+          loadIngestTokens();
+        } catch (err) { toast(err.message, 'error'); }
+      };
+      $('#tok-copy').onclick = () => navigator.clipboard.writeText($('#tok-value').textContent).then(() => toast('Token copiado', 'success'));
+      $('#tok-ok').onclick = () => {
+        $('#tok-modal').classList.add('hidden'); $('#tok-modal').classList.remove('flex');
+        $('#tok-value').textContent = '';
+      };
+      $('#it-list').onclick = async (e) => {
+        if (e.target.dataset.it !== 'revoke') return;
+        const id = e.target.closest('li').dataset.id;
+        if (!(await ask({ title: '¿Revocar este token?', message: 'El Atajo que lo use dejará de registrar pagos.', ok: 'Revocar', danger: true }))) return;
+        try { await call('DELETE', '/v1/ingest-tokens/' + encodeURIComponent(id)); toast('Token revocado', 'success'); loadIngestTokens(); }
+        catch (err) { toast(err.message, 'error'); }
+      };
+
+      $('#logout-all').onclick = async () => {
+        if (!(await ask({ title: '¿Cerrar todas las sesiones?', message: 'Tendrás que volver a entrar en todos tus dispositivos, incluido este. El Atajo del iPhone sigue funcionando.', ok: 'Cerrar sesiones', danger: true }))) return;
+        try { await call('POST', '/v1/auth/logout', { all: true }); } catch {}
+        clearSession(); showAuth();
+        toast('Cerraste la sesión en todos los dispositivos', 'success');
       };
 
       // ---------- Pestañas, Reportes y Metas ----------
@@ -775,7 +933,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
 
       document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
       function showTab(t) {
-        ['resumen', 'reportes', 'metas'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
+        ['resumen', 'reportes', 'metas', 'perfil'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
         document.querySelectorAll('[data-tab]').forEach((b) => {
           const on = b.dataset.tab === t;
           b.classList.toggle('bg-superficie', on); b.classList.toggle('text-brand', on); b.classList.toggle('shadow-sm', on);
@@ -783,6 +941,8 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         });
         if (t === 'reportes') loadReports();
         if (t === 'metas') loadGoals();
+        if (t === 'perfil') loadProfile();
+        $('#demo-note').classList.toggle('hidden', !DEMO || t === 'perfil' || t === 'resumen');
       }
       // Pide a la API real; si el endpoint no existe (404) usa datos de ejemplo.
       async function getNew(path, demoFn) {

@@ -3,7 +3,7 @@
 export const API_URL = 'https://api.cashly.lat/';
 
 // Versión de la web que se muestra en la esquina inferior derecha.
-export const VERSION = '2.5';
+export const VERSION = '2.9';
 
 // Nombre de la aplicación (landing y app).
 export const APP_NAME = 'Cashly';
