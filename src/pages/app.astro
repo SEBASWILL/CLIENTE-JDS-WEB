@@ -156,12 +156,9 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           <button data-tab="resumen" class="flex-1 rounded-xl px-3 py-2 transition">📊 Resumen</button>
           <button data-tab="reportes" class="flex-1 rounded-xl px-3 py-2 transition">📅 Reportes</button>
           <button data-tab="metas" class="flex-1 rounded-xl px-3 py-2 transition">🎯 Metas</button>
-<<<<<<< HEAD
           <button data-tab="perfil" class="flex-1 rounded-xl px-3 py-2 transition">👤 Perfil</button>
-=======
           <!-- Solo se muestra si la API reconoce la cuenta como administrador -->
           <button data-tab="admin" class="hidden flex-1 rounded-xl px-3 py-2 transition">🛡️ Admin</button>
->>>>>>> 4f159e0 (admin session)
         </nav>
         <div id="demo-note" class="hidden rounded-2xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
           ⚠️ Mostrando <b>datos de ejemplo</b>: la API aún no tiene estos endpoints.
@@ -275,7 +272,6 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           <div id="g-list" class="grid gap-4 md:grid-cols-2"></div>
         </div>
 
-<<<<<<< HEAD
         <!-- ============ PERFIL ============ -->
         <div id="tab-perfil" class="hidden space-y-6">
           <div class="grid gap-6 lg:grid-cols-2">
@@ -366,7 +362,9 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
               <p class="mt-1 text-sm text-texto-2">¿Iniciaste sesión en un equipo que no es tuyo? Ciérrala en todas partes.</p>
             </div>
             <button type="button" id="logout-all" class="btn-secondary shrink-0 text-sm text-error">Cerrar sesión en todos los dispositivos</button>
-=======
+          </section>
+        </div>
+
         <!-- ============ ADMIN ============ -->
         <!-- Solo metadatos: la API no puede descifrar montos, comercios, categorías ni correos. -->
         <div id="tab-admin" class="hidden space-y-6">
@@ -449,7 +447,6 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
               <p class="text-xs text-texto-2">Zona de peligro: borra la cuenta con sus sesiones, tokens, transacciones y metas.</p>
               <button id="ad-delete-latest" class="rounded-xl px-3 py-1.5 text-xs font-semibold text-error ring-1 ring-red-200 transition hover:bg-red-50">Eliminar la última cuenta creada</button>
             </div>
->>>>>>> 4f159e0 (admin session)
           </section>
         </div>
       </main>
@@ -1025,11 +1022,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
 
       document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
       function showTab(t) {
-<<<<<<< HEAD
-        ['resumen', 'reportes', 'metas', 'perfil'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
-=======
-        ['resumen', 'reportes', 'metas', 'admin'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
->>>>>>> 4f159e0 (admin session)
+        ['resumen', 'reportes', 'metas', 'perfil', 'admin'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
         document.querySelectorAll('[data-tab]').forEach((b) => {
           const on = b.dataset.tab === t;
           b.classList.toggle('bg-superficie', on); b.classList.toggle('text-brand', on); b.classList.toggle('shadow-sm', on);
@@ -1037,12 +1030,9 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         });
         if (t === 'reportes') loadReports();
         if (t === 'metas') loadGoals();
-<<<<<<< HEAD
         if (t === 'perfil') loadProfile();
-        $('#demo-note').classList.toggle('hidden', !DEMO || t === 'perfil' || t === 'resumen');
-=======
-        if (t === 'admin') { $('#demo-note').classList.add('hidden'); loadAdmin(); }
->>>>>>> 4f159e0 (admin session)
+        if (t === 'admin') loadAdmin();
+        $('#demo-note').classList.toggle('hidden', !DEMO || t === 'perfil' || t === 'resumen' || t === 'admin');
       }
       // Pide a la API real; si el endpoint no existe (404) usa datos de ejemplo.
       async function getNew(path, demoFn) {
