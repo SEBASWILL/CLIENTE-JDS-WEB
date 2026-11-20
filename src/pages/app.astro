@@ -156,7 +156,12 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           <button data-tab="resumen" class="flex-1 rounded-xl px-3 py-2 transition">📊 Resumen</button>
           <button data-tab="reportes" class="flex-1 rounded-xl px-3 py-2 transition">📅 Reportes</button>
           <button data-tab="metas" class="flex-1 rounded-xl px-3 py-2 transition">🎯 Metas</button>
+<<<<<<< HEAD
           <button data-tab="perfil" class="flex-1 rounded-xl px-3 py-2 transition">👤 Perfil</button>
+=======
+          <!-- Solo se muestra si la API reconoce la cuenta como administrador -->
+          <button data-tab="admin" class="hidden flex-1 rounded-xl px-3 py-2 transition">🛡️ Admin</button>
+>>>>>>> 4f159e0 (admin session)
         </nav>
         <div id="demo-note" class="hidden rounded-2xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
           ⚠️ Mostrando <b>datos de ejemplo</b>: la API aún no tiene estos endpoints.
@@ -270,6 +275,7 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           <div id="g-list" class="grid gap-4 md:grid-cols-2"></div>
         </div>
 
+<<<<<<< HEAD
         <!-- ============ PERFIL ============ -->
         <div id="tab-perfil" class="hidden space-y-6">
           <div class="grid gap-6 lg:grid-cols-2">
@@ -360,6 +366,90 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
               <p class="mt-1 text-sm text-texto-2">¿Iniciaste sesión en un equipo que no es tuyo? Ciérrala en todas partes.</p>
             </div>
             <button type="button" id="logout-all" class="btn-secondary shrink-0 text-sm text-error">Cerrar sesión en todos los dispositivos</button>
+=======
+        <!-- ============ ADMIN ============ -->
+        <!-- Solo metadatos: la API no puede descifrar montos, comercios, categorías ni correos. -->
+        <div id="tab-admin" class="hidden space-y-6">
+          <section class="relative overflow-hidden rounded-2xl bg-cashly-fondo p-5 text-white shadow-lg shadow-[#16204A]/20">
+            <div class="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full bg-brand-cian/25 blur-3xl"></div>
+            <div class="relative flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <h2 class="text-lg font-bold">🛡️ Panel de administración</h2>
+                <p id="ad-range-label" class="text-sm text-white/70">Últimos 30 días</p>
+                <p class="mt-1 text-xs text-white/50">Solo metadatos: montos, comercios, categorías y correos siguen cifrados.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-sm">
+                <div class="flex gap-1 rounded-xl bg-white/10 p-1">
+                  <button data-range="7" class="rounded-lg px-3 py-1.5 font-medium transition">7 días</button>
+                  <button data-range="30" class="rounded-lg px-3 py-1.5 font-medium transition">30 días</button>
+                  <button data-range="90" class="rounded-lg px-3 py-1.5 font-medium transition">90 días</button>
+                  <button data-range="365" class="rounded-lg px-3 py-1.5 font-medium transition">1 año</button>
+                </div>
+                <form id="ad-custom" class="flex items-center gap-1 rounded-xl bg-white/10 p-1">
+                  <input id="ad-from" type="date" required class="rounded-lg bg-transparent px-2 py-1 text-white [color-scheme:dark] outline-none" />
+                  <span class="text-white/50">→</span>
+                  <input id="ad-to" type="date" required class="rounded-lg bg-transparent px-2 py-1 text-white [color-scheme:dark] outline-none" />
+                  <button class="rounded-lg bg-white px-3 py-1.5 font-semibold text-[#0E1525] transition hover:bg-white/90">Ver</button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <section id="ad-kpis" class="grid grid-cols-2 gap-3 lg:grid-cols-4"></section>
+
+          <section class="panel">
+            <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+              <h2 class="font-semibold">Actividad por día</h2>
+              <div id="ad-series" class="flex gap-1 rounded-xl bg-[#E9EBF2] p-1 text-xs font-semibold"></div>
+            </div>
+            <div id="ad-chart"></div>
+          </section>
+
+          <div class="grid gap-6 lg:grid-cols-2">
+            <section class="panel">
+              <h2 class="panel-title">Cuentas</h2>
+              <div id="ad-accounts" class="space-y-4"></div>
+            </section>
+            <section class="panel">
+              <h2 class="panel-title">Uso</h2>
+              <dl id="ad-usage" class="divide-y divide-borde text-sm"></dl>
+            </section>
+          </div>
+
+          <section class="overflow-hidden rounded-2xl bg-superficie shadow-[0_1px_3px_rgb(14_21_37/0.05)] ring-1 ring-borde">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-borde p-5">
+              <div>
+                <h2 class="font-semibold">Cuentas registradas</h2>
+                <p id="ad-users-count" class="text-xs text-texto-3"></p>
+              </div>
+              <form id="ad-search" class="flex gap-2">
+                <input id="ad-email" type="email" placeholder="Buscar por correo exacto" class="field-sm w-56 py-2" />
+                <button class="btn-secondary px-3 py-1.5 text-xs">Buscar</button>
+                <button type="button" id="ad-search-clear" class="hidden px-2 text-xs text-texto-2 hover:text-texto">Limpiar</button>
+              </form>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[720px] text-sm">
+                <thead class="bg-superficie-2 text-left text-xs text-texto-2 uppercase">
+                  <tr>
+                    <th class="px-5 py-3 font-medium">Cuenta</th>
+                    <th class="py-3 font-medium">Registro</th>
+                    <th class="py-3 font-medium">Correo</th>
+                    <th class="py-3 font-medium">MFA</th>
+                    <th class="py-3 text-right font-medium">Transacc.</th>
+                    <th class="py-3 text-right font-medium">Metas</th>
+                    <th class="py-3 pl-6 font-medium">Última actividad</th>
+                    <th class="px-5 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody id="ad-users" class="divide-y divide-borde"></tbody>
+              </table>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-t border-borde bg-red-50/40 px-5 py-4">
+              <p class="text-xs text-texto-2">Zona de peligro: borra la cuenta con sus sesiones, tokens, transacciones y metas.</p>
+              <button id="ad-delete-latest" class="rounded-xl px-3 py-1.5 text-xs font-semibold text-error ring-1 ring-red-200 transition hover:bg-red-50">Eliminar la última cuenta creada</button>
+            </div>
+>>>>>>> 4f159e0 (admin session)
           </section>
         </div>
       </main>
@@ -546,12 +636,14 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         $('#auth').classList.remove('hidden'); $('#auth').classList.add('grid');
         showEmailVerify(null);
         showMfa(null);
+        setAdminVisible(false);
       }
       function showApp() {
         $('#auth').classList.add('hidden'); $('#auth').classList.remove('grid');
         $('#app').classList.remove('hidden');
         showTab('resumen');
         load();
+        detectAdmin();
       }
 
       const TITLE = { login: 'Hola de nuevo 👋', register: 'Crea tu cuenta', recover: 'Recupera tu cuenta' };
@@ -933,7 +1025,11 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
 
       document.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
       function showTab(t) {
+<<<<<<< HEAD
         ['resumen', 'reportes', 'metas', 'perfil'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
+=======
+        ['resumen', 'reportes', 'metas', 'admin'].forEach((x) => $('#tab-' + x).classList.toggle('hidden', x !== t));
+>>>>>>> 4f159e0 (admin session)
         document.querySelectorAll('[data-tab]').forEach((b) => {
           const on = b.dataset.tab === t;
           b.classList.toggle('bg-superficie', on); b.classList.toggle('text-brand', on); b.classList.toggle('shadow-sm', on);
@@ -941,8 +1037,12 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
         });
         if (t === 'reportes') loadReports();
         if (t === 'metas') loadGoals();
+<<<<<<< HEAD
         if (t === 'perfil') loadProfile();
         $('#demo-note').classList.toggle('hidden', !DEMO || t === 'perfil' || t === 'resumen');
+=======
+        if (t === 'admin') { $('#demo-note').classList.add('hidden'); loadAdmin(); }
+>>>>>>> 4f159e0 (admin session)
       }
       // Pide a la API real; si el endpoint no existe (404) usa datos de ejemplo.
       async function getNew(path, demoFn) {
@@ -1100,6 +1200,185 @@ const favicon = await getImage({ src: logo, width: 64, height: 64, format: 'png'
           loadGoals();
         } catch (err) { toast(err.message, 'error'); }
       };
+
+      // ---------- Administrador ----------
+      // La API decide quién es admin (la cuenta de ADMIN_EMAIL con correo verificado y Authenticator).
+      // Aquí solo se pregunta: si /v1/admin/stats responde, se muestra la pestaña; con 403 (usuario
+      // normal) o 404 (API sin panel de admin) queda oculta. El admin solo ve metadatos, nada descifrado.
+      const ADMIN_SERIES = { transacciones: 'Transacciones', registros: 'Registros', logins: 'Logins', metas: 'Metas' };
+      let adminRange = { days: 30 }; // o { from: 'AAAA-MM-DD', to: 'AAAA-MM-DD' }
+      let adminSerie = 'transacciones';
+      let adminStats = null;
+      let adminEmail = ''; // filtro de la tabla de cuentas
+
+      function setAdminVisible(on) {
+        $('[data-tab="admin"]').classList.toggle('hidden', !on);
+        if (!on) adminStats = null;
+      }
+      async function detectAdmin() {
+        try { adminStats = await call('GET', '/v1/admin/stats?' + adminQuery()); setAdminVisible(true); }
+        catch { setAdminVisible(false); }
+      }
+
+      function adminQuery() {
+        let { from, to } = adminRange;
+        if (!from) {
+          const start = new Date(); start.setDate(start.getDate() - (adminRange.days - 1));
+          from = iso(start); to = iso(new Date());
+        }
+        return new URLSearchParams({ tz: TZ, from, to });
+      }
+
+      async function loadAdmin() {
+        renderAdminRangeButtons();
+        try {
+          const [stats, users] = await Promise.all([
+            call('GET', '/v1/admin/stats?' + adminQuery()),
+            call('GET', '/v1/admin/users' + (adminEmail ? '?email=' + encodeURIComponent(adminEmail) : '')),
+          ]);
+          adminStats = stats;
+          renderAdminStats(stats);
+          renderAdminUsers(users);
+        } catch (err) {
+          toast(err.message, 'error');
+          if (err.status === 403) { setAdminVisible(false); showTab('resumen'); }
+        }
+      }
+
+      // ----- Rango de fechas -----
+      function renderAdminRangeButtons() {
+        document.querySelectorAll('[data-range]').forEach((b) => {
+          const on = !adminRange.from && Number(b.dataset.range) === adminRange.days;
+          b.classList.toggle('bg-white', on); b.classList.toggle('text-[#0E1525]', on);
+          b.classList.toggle('text-white/70', !on); b.classList.toggle('hover:text-white', !on);
+        });
+        const q = adminQuery();
+        $('#ad-from').value = q.get('from'); $('#ad-to').value = q.get('to');
+      }
+      document.querySelectorAll('[data-range]').forEach((b) => (b.onclick = () => {
+        adminRange = { days: Number(b.dataset.range) };
+        loadAdmin();
+      }));
+      $('#ad-custom').onsubmit = (e) => {
+        e.preventDefault();
+        const from = $('#ad-from').value, to = $('#ad-to').value;
+        if (from > to) return toast('La fecha inicial debe ser anterior a la final', 'warning');
+        adminRange = { from, to };
+        loadAdmin();
+      };
+
+      // ----- Estadísticas -----
+      const pct = (n, total) => (total ? Math.round((n / total) * 100) : 0);
+      const adminKpi = (label, value, sub = '') =>
+        `<div class="panel"><p class="kpi-label">${label}</p><p class="kpi-value">${value}</p><p class="mt-0.5 text-xs text-texto-3">${sub}</p></div>`;
+
+      function renderAdminStats(s) {
+        const { users: u, transactions: t, goals: g, sessions } = s;
+        $('#ad-range-label').textContent = `${fmtShort(s.range.from)} – ${fmtShort(s.range.to)} · ${s.range.days} días`;
+
+        $('#ad-kpis').innerHTML =
+          adminKpi('👥 Usuarios', u.total, `+${u.new_in_range} nuevos en el período`)
+          + adminKpi('⚡ Activos', u.active_in_range, `${u.with_open_session} con sesión abierta`)
+          + adminKpi('🧾 Transacciones', t.in_range, `${t.avg_per_day} por día · ${t.total} en total`)
+          + adminKpi('🔑 Logins', sessions.logins_in_range, `${sessions.active_ingest_tokens} atajos conectados`);
+
+        renderAdminChart();
+
+        const bar = (label, n, color = 'bg-brand') => barRow(label, `${n} de ${u.total} · ${pct(n, u.total)}%`, pct(n, u.total), color);
+        $('#ad-accounts').innerHTML =
+          bar('Correo verificado', u.verified)
+          + bar('Authenticator activo', u.mfa_enabled)
+          + bar('Pendientes de verificar el correo', u.pending_verification, 'bg-amber-400')
+          + bar('Con sesión abierta ahora', u.with_open_session, 'bg-brand/60');
+
+        const row = (label, value) => `<div class="flex justify-between gap-4 py-2.5"><dt class="text-texto-2">${label}</dt><dd class="text-right font-semibold tabular-nums">${value}</dd></div>`;
+        $('#ad-usage').innerHTML =
+          row('Usuarios con transacciones', `${t.users_with_transactions_in_range} en el período · ${t.users_with_transactions} en total`)
+          + row('Promedio por usuario activo', `${t.avg_per_active_user} transacciones`)
+          + row('Máximo de un usuario', `${t.max_per_user_in_range} transacciones`)
+          + row('Día con más registros', t.busiest_day ? `${fmtDay(t.busiest_day.date)} · ${t.busiest_day.count}` : '—')
+          + row('Metas', `${g.in_range} nuevas · ${g.total} en total`)
+          + row('Usuarios con metas', g.users_with_goals)
+          + (t.without_registration_date ? row('Transacciones sin fecha de registro', t.without_registration_date) : '');
+      }
+
+      function renderAdminChart() {
+        const s = adminStats; if (!s) return;
+        $('#ad-series').innerHTML = Object.entries(ADMIN_SERIES).map(([k, label]) =>
+          `<button data-serie="${k}" class="rounded-lg px-3 py-1.5 transition ${k === adminSerie ? 'bg-superficie text-brand shadow-sm' : 'text-texto-2 hover:text-texto'}">${label}</button>`).join('');
+
+        const days = s.daily, values = days.map((d) => d[adminSerie]);
+        const max = Math.max(...values, 1), peak = Math.max(...values);
+        const step = Math.ceil(days.length / 31); // en rangos largos no caben todas las etiquetas
+        if (!peak) { $('#ad-chart').innerHTML = `<p class="empty py-16 text-center">Sin ${ADMIN_SERIES[adminSerie].toLowerCase()} en este período.</p>`; return; }
+        $('#ad-chart').innerHTML = `
+          <div class="flex h-48 items-end ${days.length > 60 ? 'gap-px' : 'gap-0.5'} border-b border-borde">
+            ${days.map((d, i) => `<div class="flex-1 rounded-t-sm transition hover:opacity-80 ${values[i] === peak ? 'bg-brand' : 'bg-brand/30'}" style="height:${values[i] ? Math.max(2, (values[i] / max) * 100) : 0}%" title="${fmtDay(d.date)}: ${values[i]}"></div>`).join('')}
+          </div>
+          <div class="mt-1.5 flex text-[9px] text-texto-3">${days.map((d, i) => `<span class="flex-1 text-center">${i % step ? '' : +d.date.slice(8)}</span>`).join('')}</div>`;
+      }
+      $('#ad-series').onclick = (e) => {
+        const k = e.target.dataset.serie; if (!k) return;
+        adminSerie = k; renderAdminChart();
+      };
+
+      // ----- Cuentas -----
+      const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+      function ago(ms) {
+        if (!ms) return 'Nunca';
+        const min = Math.round((ms - Date.now()) / 60000);
+        if (Math.abs(min) < 60) return rtf.format(min, 'minute');
+        if (Math.abs(min) < 1440) return rtf.format(Math.round(min / 60), 'hour');
+        return rtf.format(Math.round(min / 1440), 'day');
+      }
+      const pill = (ok, yes, no) => `<span class="rounded-full px-2 py-0.5 text-xs font-medium ${ok ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${ok ? yes : no}</span>`;
+
+      function renderAdminUsers(users) {
+        $('#ad-search-clear').classList.toggle('hidden', !adminEmail);
+        $('#ad-users-count').textContent = adminEmail
+          ? `Resultado para ${adminEmail}`
+          : `${users.length} cuenta${users.length === 1 ? '' : 's'} · más recientes primero`;
+        if (!users.length) {
+          $('#ad-users').innerHTML = `<tr><td colspan="8" class="p-10 text-center text-sm text-texto-3">${adminEmail ? 'No hay ninguna cuenta con ese correo.' : 'Aún no hay cuentas.'}</td></tr>`;
+          return;
+        }
+        $('#ad-users').innerHTML = users.map((u) => `
+          <tr class="transition hover:bg-superficie-2" data-id="${esc(u.id)}" data-tx="${u.transactions}" data-goals="${u.goals}">
+            <td class="px-5 py-3">
+              <span class="font-mono text-xs text-texto-2" title="${esc(u.id)}">${esc(u.id.slice(0, 8))}…</span>
+              ${u.is_admin ? '<span class="ml-1 rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold text-brand">ADMIN</span>' : ''}
+            </td>
+            <td class="py-3">${new Date(u.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+            <td class="py-3">${pill(u.email_verified, 'Verificado', 'Pendiente')}</td>
+            <td class="py-3">${pill(u.mfa_enabled, 'Activo', 'Sin activar')}</td>
+            <td class="py-3 text-right font-semibold tabular-nums">${u.transactions}</td>
+            <td class="py-3 text-right tabular-nums">${u.goals}</td>
+            <td class="py-3 pl-6 text-texto-2" title="${u.last_activity_at ? new Date(u.last_activity_at).toLocaleString('es-CO') : ''}">${ago(u.last_activity_at)}</td>
+            <td class="px-5 py-3 text-right">
+              ${u.is_admin ? '' : '<button data-del class="rounded-lg px-2 py-1 text-xs font-medium text-error transition hover:bg-red-50">Eliminar</button>'}
+            </td>
+          </tr>`).join('');
+      }
+
+      $('#ad-search').onsubmit = (e) => { e.preventDefault(); adminEmail = $('#ad-email').value.trim(); loadAdmin(); };
+      $('#ad-search-clear').onclick = () => { adminEmail = ''; $('#ad-email').value = ''; loadAdmin(); };
+
+      async function deleteAccount(path, message) {
+        if (!(await ask({ title: '¿Eliminar esta cuenta?', message, ok: 'Eliminar', danger: true }))) return;
+        try {
+          const { deleted } = await call('DELETE', path);
+          toast(`Cuenta eliminada con ${deleted.transactions} transacciones y ${deleted.goals} metas`, 'success');
+          loadAdmin();
+        } catch (err) { toast(err.message, 'error'); }
+      }
+      $('#ad-users').onclick = (e) => {
+        if (!e.target.closest('[data-del]')) return;
+        const row = e.target.closest('tr');
+        deleteAccount('/v1/admin/users/' + encodeURIComponent(row.dataset.id),
+          `Se borran sus ${row.dataset.tx} transacciones, ${row.dataset.goals} metas, sesiones y tokens. No se puede deshacer.`);
+      };
+      $('#ad-delete-latest').onclick = () => deleteAccount('/v1/admin/users/latest',
+        'Se borra la última cuenta registrada (nunca la del administrador) con todos sus datos. No se puede deshacer.');
 
       // ---------- Arranque ----------
       store.get('at') ? showApp() : showAuth();
