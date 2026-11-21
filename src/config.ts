@@ -1,9 +1,9 @@
 // Configuración de la web. Cambia aquí la URL de la API y se aplica en todo el proyecto.
-// Sin "/" al final. Para desarrollo local usa 'http://localhost:3000'.
-export const API_URL = 'http://localhost:3000';
+// Sin "/" al final. Para desarrollo local usa 'http://localhost:3000'.https://api.cashly.lat
+export const API_URL = 'https://api.cashly.lat';
 
 // Versión de la web que se muestra en la esquina inferior derecha.
-export const VERSION = '5.0';
+export const VERSION = '5.1';
 
 // Nombre de la aplicación (landing y app).
 export const APP_NAME = 'Cashly';
